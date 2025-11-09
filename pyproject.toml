@@ -1,0 +1,15 @@
+[project]
+name = "demo-polyu"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "bosdyn-choreography-client>=5.0.1.2",
+    "bosdyn-client>=5.0.1.2",
+    "bosdyn-mission>=5.0.1.2",
+    "bosdyn-orbit>=5.0.1.2",
+    "numpy>=2.3.4",
+    "opencv-python>=4.11.0.86",
+    "ultralytics>=8.3.225",
+]

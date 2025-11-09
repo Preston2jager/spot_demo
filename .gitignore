@@ -1,0 +1,29 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# YOLO 权重（按需增删）
+yolov8x.pt
+yolov8m.pt
+yolov8n.pt
+*.onnx
+*.engine
+*.tflite
+*.pth
+*.ckpt
+
+yolov8x.pt
+yolov8m.pt
+yolov8n.pt
+*.onnx
+*.engine
+*.tflite
+*.pth
+*.ckpt
