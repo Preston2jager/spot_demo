@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     t0 = time.time()
     while time.time() - t0 < 4.0:
-        agent.send_velocity(0.25, 0.0, 0.0)  # 0.4 m/s 前进
+        agent.send_velocity(0.25, 0.0, 0.0)  
         time.sleep(0.1)
 
     time.sleep(1)
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     agent.detect_grab_return_and_release(
         detector,
         source="hand_color_image",
-        home_frame="odom",        # 也可用 "vision"（相对短程、但可能跳变）
+        home_frame="odom",        
         open_fraction=1.0,
         stow_on_finish=True,
     )

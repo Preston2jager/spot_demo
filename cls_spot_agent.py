@@ -157,7 +157,7 @@ class SpotAgent:
     def send_velocity(self, v_x: float, v_y: float, v_rot: float, hold: Optional[float] = None):
         """BODY 系速度命令；end_time_secs = now + hold。"""
         if self.cmd_client is None:
-            raise RuntimeError("cmd_client 未初始化。")
+            raise RuntimeError("cmd_client require init")
         hold = self.default_hold if hold is None else hold
         cmd = RobotCommandBuilder.synchro_velocity_command(v_x=v_x, v_y=v_y, v_rot=v_rot)
         self.cmd_client.robot_command(cmd, end_time_secs=time.time() + hold)
@@ -166,7 +166,7 @@ class SpotAgent:
 
     def move_spot(self, *, lin_speed: float = 0.6, ang_speed: float = 1.0, fps: float = 30.0) -> None:
         if not hasattr(self, "send_velocity"):
-            raise RuntimeError("未找到 self.send_velocity(vx, vy, vrot)。")
+            raise RuntimeError("Not find self.send_velocity(vx, vy, vrot)。")
         period = 1.0 / max(1.0, fps)
         def _loop(stdscr):
             stdscr.nodelay(True)
