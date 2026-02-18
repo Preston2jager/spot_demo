@@ -7,7 +7,7 @@ class YoloBottleDetector:
     """
     YOLOv8 瓶子检测器：
     - 支持输入文件路径或 np.ndarray(BGR/RGB)。
-    - 返回第一个 bottle 的中心点像素坐标 (x, y)（int），左上角为 (0, 0)。
+    - 返回第一个 bottle 的中心点像素坐标 (x, y)(int)，左上角为 (0, 0)。
     - 若未检出，返回 None。
     """
     def __init__(self, weights: str = "yolov8m.pt", device: Optional[str] = None):

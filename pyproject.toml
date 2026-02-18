@@ -9,7 +9,10 @@ dependencies = [
     "bosdyn-client>=5.0.1.2",
     "bosdyn-mission>=5.0.1.2",
     "bosdyn-orbit>=5.0.1.2",
+    "flask>=3.1.2",
     "numpy>=2.3.4",
+    "open3d>=0.19.0",
     "opencv-python>=4.11.0.86",
     "ultralytics>=8.3.225",
+    "vtk>=9.5.2",
 ]
