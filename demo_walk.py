@@ -1,5 +1,7 @@
 from cls_spot_agent import SpotAgent
 import threading
+import os
+os.environ["QT_QPA_PLATFORM"] = "xcb"
 
 
 if __name__ == "__main__":
