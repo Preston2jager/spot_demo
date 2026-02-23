@@ -7,13 +7,14 @@ import cv2
 import threading
 from typing import Optional
 import numpy as np
+# ===== For web ui =====
 from flask import Flask, Response, render_template_string
 # ===== BostonDynamic APIs =====
 import bosdyn.client
 from bosdyn.api import image_pb2
 from bosdyn.client.image import build_image_request, ImageClient
 from bosdyn.client.lease import LeaseClient, LeaseKeepAlive
-from bosdyn.client.robot_command import RobotCommandClient, RobotCommandBuilder, blocking_stand
+from bosdyn.client.robot_command import RobotCommandClient, RobotCommandBuilder, blocking_stand, block_until_arm_arrives
 from bosdyn.client.robot_state import RobotStateClient
 from bosdyn.client.robot_command import RobotCommandBuilder
 from bosdyn.client.frame_helpers import (
@@ -26,8 +27,13 @@ from bosdyn.client.frame_helpers import (
     math_helpers
 )
 from bosdyn.client.math_helpers import SE3Pose, Quat
+from bosdyn.client.manipulation_api_client import ManipulationApiClient
+from bosdyn.api import geometry_pb2, manipulation_api_pb2
 
 class SpotAgent:
+
+    # region  Private APIs: Initialisation
+
     def __init__(
         self,
         hostname: str,
@@ -73,6 +79,8 @@ class SpotAgent:
 
     def __exit__(self, *args):
         self._shutdown()
+
+    # endregion
 
     # region  Private APIs: Spot admin
 
@@ -209,12 +217,6 @@ class SpotAgent:
         print(f"[WebUI] Server started at http://{host}:{port}")
 
     def _stream_loop(self):
-        import cv2
-        import numpy as np
-        import time
-        from bosdyn.api import image_pb2
-        from bosdyn.client.image import build_image_request
-        
         image_client = self.robot.ensure_client("image")
         source_names = [
             'hand_color_image',       
@@ -228,36 +230,29 @@ class SpotAgent:
             'right_fisheye_image': 'Right',
             'back_fisheye_image': 'Back'
         }
-        
         camera_rotations = {
             'hand_color_image': 0,       
             'left_fisheye_image': 0,
             'right_fisheye_image': 180,  
             'back_fisheye_image': 0
         }
-        
         W_STD, H_STD = 320, 240
         W_WIDE, H_WIDE = 640, 480
-
         reqs = [
             build_image_request(src, pixel_format=image_pb2.Image.PIXEL_FORMAT_RGB_U8, quality_percent=70) 
             for src in source_names
         ]
-        
         while self._streaming:
             try:
                 responses = image_client.get_image(reqs)
                 img_map = {}
-                
                 empty_std = np.zeros((H_STD, W_STD, 3), dtype=np.uint8)
                 empty_wide = np.zeros((H_WIDE, W_WIDE, 3), dtype=np.uint8)
-                
                 for res in responses:
                     source_name = res.source.name
                     if res.status == image_pb2.ImageResponse.STATUS_OK:
                         arr = np.frombuffer(res.shot.image.data, dtype=np.uint8)
                         decoded = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-                        
                         if decoded is not None:
                             angle = camera_rotations.get(source_name, 0) % 360
                             rotated = decoded
@@ -268,22 +263,17 @@ class SpotAgent:
                                 h_o, w_o = decoded.shape[:2]
                                 M = cv2.getRotationMatrix2D((w_o//2, h_o//2), angle, 1.0)
                                 rotated = cv2.warpAffine(decoded, M, (w_o, h_o))
-
                             if source_name in ['hand_color_image', 'back_fisheye_image']:
                                 target_w, target_h = W_WIDE, H_WIDE
                                 font_scale = 1.0
                             else:
                                 target_w, target_h = W_STD, H_STD
                                 font_scale = 0.7
-
                             final_img = cv2.resize(rotated, (target_w, target_h))
-                            
                             label = display_names.get(source_name, source_name)
                             cv2.putText(final_img, label, (10, 40), 
                                         cv2.FONT_HERSHEY_SIMPLEX, font_scale, (0, 255, 0), 2)
-                            
                             img_map[source_name] = final_img
-
                 # ==========================================
                 # 1. 第一行和第二行 (原相机画面)
                 # ==========================================
@@ -410,81 +400,9 @@ class SpotAgent:
         )
         self.cmd_client.robot_command(cmd, end_time_secs=end_time_sec)
         print(f"[GoTo] Logic Target: ({x}, {y}, {angle_deg}°) -> SDK Target: ({final_x:.2f}, {final_y:.2f})")
-
-    def quick_detect(self, detector) -> Optional[str]:
-        """
-        快速扫描周边环境（仅前、后、左、右）。
-        如果发现目标，立刻返回方向字符串: 'front', 'back', 'left', 'right'。
-        """
-        print("\n[Guard] ⚡ 启动快速侦测模式 (前后左右)...")
-        
-        # 仅选取所需的四个摄像头
-        sources = [
-            'hand_color_image',    # 前向（手部）
-            'left_fisheye_image',  # 左向
-            'right_fisheye_image', # 右向
-            'back_fisheye_image'   # 后向
-        ]
-        
-        # 相机旋转字典（去掉了不需要的前侧方摄像头）
-        camera_rotations = {
-            'left_fisheye_image': 0,
-            'right_fisheye_image': 180,  
-            'hand_color_image': 0,       
-            'back_fisheye_image': 0
-        }
-        
-        # 结果映射字典，把相机名字翻译成方向回馈
-        direction_map = {
-            'hand_color_image': 'front',
-            'left_fisheye_image': 'left',
-            'right_fisheye_image': 'right',
-            'back_fisheye_image': 'back'
-        }
-
-        image_client = self.robot.ensure_client('image')
-        reqs = [build_image_request(src, quality_percent=70) for src in sources]
-        
-        try:
-            responses = image_client.get_image(reqs)
-        except Exception as e:
-            print(f"[Guard] 快速获取图像失败: {e}")
-            return None    
-            
-        images_dict = {}
-        for res in responses:
-            if res.status == image_pb2.ImageResponse.STATUS_OK:
-                cam_name = res.source.name
-                img_np = np.frombuffer(res.shot.image.data, dtype=np.uint8)
-                img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
-                
-                if img is not None:
-                    angle = camera_rotations.get(cam_name, 0) % 360
-                    rotated_img = img
-                    # 因为快速模式下只有 right_fisheye 需要旋转180度
-                    if angle == 180:
-                        rotated_img = cv2.rotate(img, cv2.ROTATE_180)
-                        
-                    images_dict[cam_name] = rotated_img
-                    
-        if not images_dict:
-            return None
-
-        # 🎯 调用 YOLO 中新增的快速检测方法
-        found_cam = detector.fast_detect(images_dict, conf=0.05)
-        
-        # 如果返回了含有目标的相机名称，映射为方向并返回
-        if found_cam:
-            direction = direction_map.get(found_cam, 'unknown')
-            print(f"[Guard] 🎯 快速检测触发！在 {direction.upper()} 方向 ({found_cam}) 发现目标！")
-            return direction
-            
-        print("[Guard] 周边安全，无目标。")
-        return None
-    
+ 
     def scan(self, detector) -> list:
         print("\n[Guard] 正在扫描全向环境寻找所有目标...")
-        # 仅使用四个相机
         sources = [
             'hand_color_image', 
             'left_fisheye_image', 
@@ -499,17 +417,14 @@ class SpotAgent:
         }
         image_client = self.robot.ensure_client('image')
         reqs = [build_image_request(src, quality_percent=70) for src in sources]
-        
         try:
             responses = image_client.get_image(reqs)
         except Exception as e:
             print(f"[Guard] 获取图像失败: {e}")
             return []
-            
         raw_responses = {}
         images_dict = {}
         cam_meta = {} 
-        
         for res in responses:
             if res.status == image_pb2.ImageResponse.STATUS_OK:
                 cam_name = res.source.name
@@ -520,42 +435,29 @@ class SpotAgent:
                     orig_h, orig_w = img.shape[:2]
                     angle = camera_rotations.get(cam_name, 0) % 360
                     rotated_img = img
-                    # 按需旋转
                     if angle == 180:
                         rotated_img = cv2.rotate(img, cv2.ROTATE_180)
                     images_dict[cam_name] = rotated_img
                     cam_meta[cam_name] = {"orig_w": orig_w, "orig_h": orig_h, "angle": angle}
-                    
         if not images_dict:
             return []
-            
-        # 运行目标检测
         results = detector.detect_targets_in_batch(images_dict, conf=0.05)
-        
         detection_list = []
         if results:
             print(f"[Guard] 发现 {len(results)} 个潜在目标，正在反推原始坐标...")
             for best in results:
                 cam_name = best['camera']
                 cx, cy = best.get('cx', 0), best.get('cy', 0)
-                
-                # 🔄 坐标逆推
                 meta = cam_meta[cam_name]
                 orig_w, orig_h, angle = meta['orig_w'], meta['orig_h'], meta['angle']
-                
                 raw_pixel_x, raw_pixel_y = cx, cy
                 if angle == 180:
                     raw_pixel_x = orig_w - cx - 1
                     raw_pixel_y = orig_h - cy - 1
-                
                 print(f"        -> [{cam_name}] 原始像素坐标: ({raw_pixel_x:.1f}, {raw_pixel_y:.1f})")
-                # 将该目标的 image_response 和坐标打包存入列表
                 detection_list.append((raw_responses[cam_name], raw_pixel_x, raw_pixel_y))
-                
         else:
             print("[Guard] 未发现目标。")
-            
-        # 返回列表
         return detection_list
 
     def point_arm_to_pixel(self, detection_result: tuple, assumed_dist: float = 1.0) -> bool:
@@ -699,14 +601,11 @@ class SpotAgent:
             print("[Vision] 未收到有效的检测结果，清除平面图目标。")
             self._latest_objects = [] # 清除过期目标
             return []
-            
         registered_objects = []
         print(f"\n[Vision] 开始批量解算 {len(detection_list)} 个目标的 3D 坐标...")
-        
         for idx, detection in enumerate(detection_list):
             image_response, pixel_x, pixel_y = detection
             try:
-                # --- 1. 提取相机内参 ---
                 source = image_response.source
                 if source.HasField('pinhole'):
                     intrinsics = source.pinhole.intrinsics
@@ -714,15 +613,11 @@ class SpotAgent:
                     intrinsics = source.fisheye.intrinsics
                 else:
                     continue
-                    
                 fx, fy = intrinsics.focal_length.x, intrinsics.focal_length.y
                 cx, cy = intrinsics.principal_point.x, intrinsics.principal_point.y
-                
-                # --- 2. 像素坐标 -> 相机局部坐标系下的 3D 射线 ---
                 x_cam = (pixel_x - cx) / fx
                 y_cam = (pixel_y - cy) / fy
                 z_cam = 1.0 
-                
                 length = math.sqrt(x_cam**2 + y_cam**2 + z_cam**2)
                 target_cam = math_helpers.SE3Pose(
                     x=(x_cam/length)*assumed_dist, 
@@ -730,20 +625,14 @@ class SpotAgent:
                     z=(z_cam/length)*assumed_dist, 
                     rot=math_helpers.Quat()
                 )
-                
-                # --- 3. 转换到绝对世界坐标系 (VISION_FRAME_NAME) ---
-                #root_frame = VISION_FRAME_NAME
                 root_frame = "body"
                 cam_frame = image_response.shot.frame_name_image_sensor
                 camera_snapshot = image_response.shot.transforms_snapshot
-                
                 world_T_cam = get_a_tform_b(camera_snapshot, root_frame, cam_frame)
                 if world_T_cam is None:
                     continue
-                    
                 target_world = world_T_cam * target_cam
                 print(f"         [目标 {idx+1}] 坐标系: {root_frame} | 位置: X={target_world.x:.3f}, Y={target_world.y:.3f}, Z={target_world.z:.3f}")
-                
                 registered_objects.append({
                     "frame": root_frame,
                     "x": target_world.x,
@@ -751,11 +640,8 @@ class SpotAgent:
                     "z": target_world.z,
                     "camera_name": source.name
                 })
-                
             except Exception as e:
                 print(f"[Vision] ❌ 目标 3D 注册异常: {e}")
-        
-        # 将计算出的全部坐标缓存到 self 中，供 stream_loop 画地图用
         self._latest_objects = registered_objects
         return registered_objects
         
@@ -764,28 +650,18 @@ class SpotAgent:
         从 scan 返回的检测列表中提取第一个目标，自动走过去并抓取。
         内置了底层 Manipulation API 的完整抓取与反馈轮询逻辑。
         """
-        import time
-        from bosdyn.api import geometry_pb2, manipulation_api_pb2
-        from bosdyn.client.manipulation_api_client import ManipulationApiClient
-        from bosdyn.client.robot_command import RobotCommandClient, RobotCommandBuilder, block_until_arm_arrives
-
         if not detection_list:
             print("\n[Grab] ⚠️ 检测列表为空，没有找到可以抓取的目标。")
             return False
-
         first_target = detection_list[0]
-        
-        # 拦截错误的数据类型
         if isinstance(first_target, dict):
             print("\n[Grab] ❌ 数据格式错误！请确保传入的是 agent.scan() 返回的原始列表。")
             return False
-            
         try:
             image_response, pixel_x, pixel_y = first_target[:3]
         except Exception as e:
             print(f"\n[Grab] ❌ 解析目标数据失败: {e}")
             return False
-        
         cam_name = image_response.source.name
         print(f"\n[Grab] 🎯 锁定首个目标！")
         print(f"       发现位置: {cam_name}")
@@ -867,8 +743,8 @@ class SpotAgent:
                 print(f"[Grab] ⚠️ 转换为 Carry 姿态失败: {e}")
         else:
             print("\n[Grab] ❌ 抓取失败 (可能因为目标超出物理可达范围、目标移动，或防撞机制触发)。")
-
         return succeeded
+    
     # endregion
 
     # region  Public APIs: Navigation functions
