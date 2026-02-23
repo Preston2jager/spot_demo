@@ -1,4 +1,4 @@
-from cls_spot_agent_test import SpotAgent
+from cls_rmit_spot import SpotAgent
 import time
 
 if __name__ == "__main__":

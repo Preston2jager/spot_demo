@@ -11,7 +11,7 @@ def main():
     global current_state, active_keys
     
     print("[系统] 正在初始化 Spot 和 YOLO，请稍候...")
-    yolo = YoloBottleDetector("yolov8m.pt")
+    yolo = YoloBottleDetector("yolov8x_bottle.pt")
     
     # 替换为你刚才成功站立的实际 IP 和密码
     spot = SpotAgent("192.168.80.3", "user", "myjujz7e2prj") 

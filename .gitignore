@@ -22,6 +22,7 @@ yolov8n.pt
 yolov8x.pt
 yolov8m.pt
 yolov8n.pt
+yolov8x_bottle.pt
 *.onnx
 *.engine
 *.tflite
