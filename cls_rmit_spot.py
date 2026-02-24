@@ -30,6 +30,7 @@ from bosdyn.client.math_helpers import SE3Pose, Quat
 from bosdyn.client.manipulation_api_client import ManipulationApiClient
 from bosdyn.api import geometry_pb2, manipulation_api_pb2
 
+
 class SpotAgent:
 
     # region  Private APIs: Initialisation
@@ -187,34 +188,77 @@ class SpotAgent:
     
     # region  Private APIs: Web streaming
 
-    def _start_web_server(self, host="0.0.0.0", port=5555):
-        app = Flask(__name__)
-        @app.route('/')
-        def index():
-            # 极简的 HTML 页面，显示流画面
+    def _start_web_server(self, host="0.0.0.0"):
+        # ==========================================
+        # Server 1: 相机视图 (2x2 排列) - 端口 5555
+        # ==========================================
+        app_cameras = Flask("cameras_app")
+        
+        @app_cameras.route('/')
+        def index_cameras():
             return render_template_string("""
                 <html>
-                <head><title>Spot 360 View</title></head>
+                <head><title>Spot Cameras (2x2)</title></head>
                 <body style="background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
                     <img src="/video_feed" style="width: 80%; border: 2px solid #555;">
                 </body>
                 </html>
             """)
-        def gen_frames():
+            
+        def gen_frames_cameras():
             while True:
-                if self._latest_grid is not None:
-                    # 将 OpenCV 图像转为 JPG 格式
+                # 假设 self._latest_grid 已经在其他地方被处理成了 2x2 的画面
+                if getattr(self, '_latest_grid', None) is not None:
                     ret, buffer = cv2.imencode('.jpg', self._latest_grid)
                     frame = buffer.tobytes()
-                    # 使用 MJPEG 格式拼接
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                time.sleep(0.05) # 限制 20fps 左右，节省 CPU
-        @app.route('/video_feed')
-        def video_feed():
-            return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-        threading.Thread(target=lambda: app.run(host=host, port=port, debug=False, use_reloader=False), daemon=True).start()
-        print(f"[WebUI] Server started at http://{host}:{port}")
+                time.sleep(0.05)
+                
+        @app_cameras.route('/video_feed')
+        def video_feed_cameras():
+            return Response(gen_frames_cameras(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+        # ==========================================
+        # Server 2: 地图视图 - 端口 5556
+        # ==========================================
+        app_map = Flask("map_app")
+        
+        @app_map.route('/')
+        def index_map():
+            return render_template_string("""
+                <html>
+                <head><title>Spot Map View</title></head>
+                <body style="background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+                    <img src="/video_feed" style="width: 80%; border: 2px solid #555;">
+                </body>
+                </html>
+            """)
+            
+        def gen_frames_map():
+            while True:
+                # 这里替换成你实际存储地图图像的变量，比如 self._latest_map
+                if getattr(self, '_latest_map', None) is not None:
+                    ret, buffer = cv2.imencode('.jpg', self._latest_map)
+                    frame = buffer.tobytes()
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                time.sleep(0.05)
+                
+        @app_map.route('/video_feed')
+        def video_feed_map():
+            return Response(gen_frames_map(), mimetype='multipart/x-mixed-replace; boundary=frame')
+        threading.Thread(
+            target=lambda: app_cameras.run(host=host, port=5555, debug=False, use_reloader=False), 
+            daemon=True
+        ).start()
+        print(f"[WebUI] Cameras server started at http://{host}:5555")
+        
+        threading.Thread(
+            target=lambda: app_map.run(host=host, port=5556, debug=False, use_reloader=False), 
+            daemon=True
+        ).start()
+        print(f"[WebUI] Map server started at http://{host}:5556")
 
     def _stream_loop(self):
         image_client = self.robot.ensure_client("image")
