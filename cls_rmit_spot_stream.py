@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import time
+import os
+import logging
 import threading
 from flask import Flask, render_template_string, Response
 from bosdyn.api import image_pb2
@@ -9,6 +11,8 @@ from bosdyn.client.image import build_image_request
 from cls_rmit_spot_tracker import SpotTracker
 
 class SpotStreamer:
+    
+    @SpotTracker("Initialize Streamer")
     def __init__(self, robot, host="0.0.0.0", web_port=5555):
         self.robot = robot
         self.host = host
@@ -93,6 +97,9 @@ class SpotStreamer:
                            b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
             time.sleep(0.05)
 
+    # ================= 核心修改区域 =================
+
+    @SpotTracker("Stream Loop Task", exit_on_fail=False)
     def _stream_loop(self):
         image_client = self.robot.ensure_client("image")
         source_names = ['hand_color_image', 'left_fisheye_image', 'right_fisheye_image', 'back_fisheye_image']
@@ -133,17 +140,35 @@ class SpotStreamer:
                     self.frames['grid'] = current_grid # type: ignore
                 time.sleep(0.05) 
             except Exception as e:
-                print(f"Error: {e}")
+                # 注意：由于这里你用了 try-except 拦截了异常，Tracker 不会认为线程失败。
+                # 如果你想让严重错误触发 Tracker 的 [Error] 日志，可以使用 raise e，或者让 Tracker 记录
+                print(f"Error in stream loop: {e}")
                 time.sleep(0.5)
 
-    @SpotTracker("Start Streaming")
+    @SpotTracker("Flask Web Server", exit_on_fail=False)
+    def _run_web_server(self):
+        import logging
+        import traceback
+        import sys
+        try:
+            log = logging.getLogger('werkzeug')
+            log.setLevel(logging.ERROR) 
+            import flask.cli
+            flask.cli.show_server_banner = lambda *args: None
+            print(f"[log] Web Dashboard is running at http://{self.host}:{self.web_port}")
+            self.app.run(host=self.host, port=self.web_port, debug=False, use_reloader=False, threaded=True)
+        except OSError as e:
+            print(f"[log] ❌ Flask 启动失败: 端口 {self.web_port} 可能被占用。({e})")
+        except Exception as e:
+            print(f"[log] 💥 Flask 发生未知错误: {e}")
+            traceback.print_exc()
+    
+    @SpotTracker("Start Streaming Initialization", exit_on_fail=False)
     def start(self):
+        """只负责初始化和拉起线程"""
         self._streaming = True
         threading.Thread(target=self._stream_loop, daemon=True).start()
-        threading.Thread(
-            target=lambda: self.app.run(host=self.host, port=self.web_port, debug=False, use_reloader=False, threaded=True), 
-            daemon=True
-        ).start()
+        threading.Thread(target=self._run_web_server, daemon=True).start()
 
     def stop(self):
         self._streaming = False

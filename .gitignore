@@ -23,6 +23,7 @@ yolov8x.pt
 yolov8m.pt
 yolov8n.pt
 yolov8x_bottle.pt
+yolov8m_rmit.pt
 yolo11x.pt
 yolo11x-cls.pt
 yolov8x-worldv2.pt

@@ -12,7 +12,7 @@ class SpotDetector:
         "aluminum soda can"
     ]
     
-    def __init__(self, weights: str = "yolo11x.pt", device: Optional[str] = None):
+    def __init__(self, weights: str = "yolov8m_rmit.pt", device: Optional[str] = None):
         self.model = YOLO(weights)
         self.device = device
         if "world" in weights.lower():
@@ -20,14 +20,11 @@ class SpotDetector:
             self.model.set_classes(self.TARGET_CLASSES)
         else:
             self.TARGET_CLASSES = ["bottle"]
-            
         self.names = self.model.names 
         self.target_ids = set()
-        
         for cls_id, cls_name in self.names.items():
             if cls_name in self.TARGET_CLASSES:
-                self.target_ids.add(cls_id)
-                
+                self.target_ids.add(cls_id)         
         if not self.target_ids:
             print(f"⚠️ Target class not found in model {self.TARGET_CLASSES}")
         else:

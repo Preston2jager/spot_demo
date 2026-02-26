@@ -1,6 +1,0 @@
-
-path: /home/sang/Projects/demo_polyu/datasets/plastic_bottle
-train: train/images
-val: train/images
-names:
-  0: plastic_bottle

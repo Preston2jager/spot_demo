@@ -1,6 +1,0 @@
-
-path: /home/sang/Projects/demo_polyu/datasets/plastic_bottle
-train: train/images
-val: train/images  # 如果没有 val 集，暂时用 train 代替
-names:
-  0: plastic_bottle

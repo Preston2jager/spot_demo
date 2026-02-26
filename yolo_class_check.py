@@ -1,6 +1,6 @@
-from cls_yolo_2 import YoloTargetDetector # 假设你已经实例化了
+from cls_rmit_spot_detector_ov import SpotDetector # 假设你已经实例化了
 
-detector = YoloTargetDetector()
+detector = SpotDetector()
 
 # 打印所有 80 个类别
 print(detector.model.names)
