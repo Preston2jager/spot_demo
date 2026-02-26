@@ -11,7 +11,7 @@
 yolo export model=yolov8m_rmit.pt format=openvino half=True imgsz=640 batch=3
 ```
 ## Benchmarking for Ultra 125h
-Intel:CPU 200.47 ms/f
-Intel:NPU 61.66 ms/f
-Intel:GPU 28.32 ms/f
+- Intel:CPU 200.47 ms/f
+- Intel:NPU 61.66 ms/f
+- Intel:GPU 28.32 ms/f
 
