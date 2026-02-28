@@ -8,7 +8,7 @@
 # Yolo model 
 ## Convert yolo model to openvino
 ```bash
-yolo export model=yolov8m_rmit.pt format=openvino half=True imgsz=640 batch=3
+yolo export model=yolov8m_rmit.pt format=openvino half=True imgsz=640 batch=1
 ```
 ## Benchmarking for Ultra 125h
 - Intel:CPU 200.47 ms/f

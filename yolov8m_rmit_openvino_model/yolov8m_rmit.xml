@@ -2,10 +2,10 @@
 <net name="Model0" version="11">
 	<layers>
 		<layer id="0" name="x" type="Parameter" version="opset1">
-			<data shape="3,3,640,640" element_type="f32" />
+			<data shape="1,3,640,640" element_type="f32" />
 			<output>
 				<port id="0" precision="FP32" names="x">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>3</dim>
 					<dim>640</dim>
 					<dim>640</dim>
@@ -79,7 +79,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>3</dim>
 					<dim>640</dim>
 					<dim>640</dim>
@@ -93,7 +93,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -137,7 +137,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -151,7 +151,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="89_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -161,7 +161,7 @@
 		<layer id="9" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -169,7 +169,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="89,input.1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -213,7 +213,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>320</dim>
 					<dim>320</dim>
@@ -227,7 +227,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -271,7 +271,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -285,7 +285,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="103_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -295,7 +295,7 @@
 		<layer id="16" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_1" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -303,7 +303,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="103,input.5">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -347,7 +347,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -361,7 +361,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -405,7 +405,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -419,7 +419,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="123_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -429,7 +429,7 @@
 		<layer id="23" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_2" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -437,7 +437,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="123,input.9">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -461,7 +461,7 @@
 		<layer id="26" name="__module.model.2/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -473,13 +473,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="127">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="4" precision="FP32" names="128,input.11">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -523,7 +523,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -537,7 +537,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -581,7 +581,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -595,7 +595,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="138_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -605,7 +605,7 @@
 		<layer id="33" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_3" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -613,7 +613,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="138,input.13">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -657,7 +657,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -671,7 +671,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -715,7 +715,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -729,7 +729,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="147_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -739,7 +739,7 @@
 		<layer id="40" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_4" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -747,7 +747,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="147,input.17">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -758,13 +758,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -772,7 +772,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="149,input.19">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -816,7 +816,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -830,7 +830,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -874,7 +874,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -888,7 +888,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="159_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -898,7 +898,7 @@
 		<layer id="48" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_5" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -906,7 +906,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="159,input.21">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -950,7 +950,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -964,7 +964,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1008,7 +1008,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1022,7 +1022,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="168_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1032,7 +1032,7 @@
 		<layer id="55" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_6" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1040,7 +1040,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="168,input.25">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1051,13 +1051,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1065,7 +1065,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="170">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1076,25 +1076,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>48</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1102,7 +1102,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="172,input.27">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1146,7 +1146,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1160,7 +1160,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1204,7 +1204,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1218,7 +1218,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="180_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1228,7 +1228,7 @@
 		<layer id="64" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_7" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1236,7 +1236,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="180,input.29">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1280,7 +1280,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>160</dim>
 					<dim>160</dim>
@@ -1294,7 +1294,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1338,7 +1338,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1352,7 +1352,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="194_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1362,7 +1362,7 @@
 		<layer id="71" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_8" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1370,7 +1370,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="194,input.33">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1414,7 +1414,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1428,7 +1428,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1472,7 +1472,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1486,7 +1486,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="218_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1496,7 +1496,7 @@
 		<layer id="78" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_9" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1504,7 +1504,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="218,input.37">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1528,7 +1528,7 @@
 		<layer id="81" name="__module.model.4/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1540,13 +1540,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="222">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="4" precision="FP32" names="223,input.39">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1590,7 +1590,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1604,7 +1604,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1648,7 +1648,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1662,7 +1662,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="233_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1672,7 +1672,7 @@
 		<layer id="88" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_10" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1680,7 +1680,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="233,input.41">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1724,7 +1724,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1738,7 +1738,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1782,7 +1782,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1796,7 +1796,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="242_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1806,7 +1806,7 @@
 		<layer id="95" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_11" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1814,7 +1814,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="242,input.45">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1825,13 +1825,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1839,7 +1839,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="244,input.47">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1883,7 +1883,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1897,7 +1897,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1941,7 +1941,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1955,7 +1955,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="254_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1965,7 +1965,7 @@
 		<layer id="103" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_12" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -1973,7 +1973,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="254,input.49">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2017,7 +2017,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2031,7 +2031,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2075,7 +2075,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2089,7 +2089,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="263_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2099,7 +2099,7 @@
 		<layer id="110" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_13" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2107,7 +2107,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="263,input.53">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2118,13 +2118,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2132,7 +2132,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="265,input.55">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2176,7 +2176,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2190,7 +2190,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2234,7 +2234,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2248,7 +2248,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="275_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2258,7 +2258,7 @@
 		<layer id="118" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_14" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2266,7 +2266,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="275,input.57">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2310,7 +2310,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2324,7 +2324,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2368,7 +2368,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2382,7 +2382,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="284_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2392,7 +2392,7 @@
 		<layer id="125" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_15" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2400,7 +2400,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="284,input.61">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2411,13 +2411,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2425,7 +2425,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="286,input.63">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2469,7 +2469,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2483,7 +2483,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2527,7 +2527,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2541,7 +2541,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="296_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2551,7 +2551,7 @@
 		<layer id="133" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_16" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2559,7 +2559,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="296,input.65">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2603,7 +2603,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2617,7 +2617,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2661,7 +2661,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2675,7 +2675,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="305_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2685,7 +2685,7 @@
 		<layer id="140" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_17" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2693,7 +2693,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="305,input.69">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2704,13 +2704,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2718,7 +2718,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="307">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2729,37 +2729,37 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="4" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="5" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2767,7 +2767,7 @@
 			</input>
 			<output>
 				<port id="6" precision="FP32" names="309,input.71">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2811,7 +2811,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2825,7 +2825,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2869,7 +2869,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2883,7 +2883,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="317_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2893,7 +2893,7 @@
 		<layer id="149" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_18" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2901,7 +2901,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="317,input.73">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2945,7 +2945,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -2959,7 +2959,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3003,7 +3003,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3017,7 +3017,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="331_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3027,7 +3027,7 @@
 		<layer id="156" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_19" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3035,7 +3035,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="331,input.77">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3079,7 +3079,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3093,7 +3093,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3137,7 +3137,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3151,7 +3151,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="355_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3161,7 +3161,7 @@
 		<layer id="163" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_20" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3169,7 +3169,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="355,input.81">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3193,7 +3193,7 @@
 		<layer id="166" name="__module.model.6/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3205,13 +3205,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="359">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="4" precision="FP32" names="360,input.83">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3255,7 +3255,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3269,7 +3269,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3313,7 +3313,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3327,7 +3327,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="370_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3337,7 +3337,7 @@
 		<layer id="173" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_21" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3345,7 +3345,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="370,input.85">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3389,7 +3389,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3403,7 +3403,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3447,7 +3447,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3461,7 +3461,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="379_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3471,7 +3471,7 @@
 		<layer id="180" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_22" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3479,7 +3479,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="379,input.89">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3490,13 +3490,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3504,7 +3504,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="381,input.91">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3548,7 +3548,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3562,7 +3562,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3606,7 +3606,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3620,7 +3620,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="391_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3630,7 +3630,7 @@
 		<layer id="188" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_23" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3638,7 +3638,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="391,input.93">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3682,7 +3682,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3696,7 +3696,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3740,7 +3740,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3754,7 +3754,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="400_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3764,7 +3764,7 @@
 		<layer id="195" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_24" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3772,7 +3772,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="400,input.97">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3783,13 +3783,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3797,7 +3797,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="402,input.99">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3841,7 +3841,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3855,7 +3855,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3899,7 +3899,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3913,7 +3913,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="412_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3923,7 +3923,7 @@
 		<layer id="203" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_25" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3931,7 +3931,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="412,input.101">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3975,7 +3975,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -3989,7 +3989,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4033,7 +4033,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4047,7 +4047,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="421_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4057,7 +4057,7 @@
 		<layer id="210" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_26" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4065,7 +4065,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="421,input.105">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4076,13 +4076,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4090,7 +4090,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="423,input.107">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4134,7 +4134,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4148,7 +4148,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4192,7 +4192,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4206,7 +4206,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="433_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4216,7 +4216,7 @@
 		<layer id="218" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_27" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4224,7 +4224,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="433,input.109">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4268,7 +4268,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4282,7 +4282,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4326,7 +4326,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4340,7 +4340,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="442_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4350,7 +4350,7 @@
 		<layer id="225" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_28" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4358,7 +4358,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="442,input.113">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4369,13 +4369,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4383,7 +4383,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="444">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4394,37 +4394,37 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="4" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="5" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4432,7 +4432,7 @@
 			</input>
 			<output>
 				<port id="6" precision="FP32" names="446,input.115">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4476,7 +4476,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4490,7 +4490,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4534,7 +4534,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4548,7 +4548,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="454_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4558,7 +4558,7 @@
 		<layer id="234" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_29" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4566,7 +4566,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="454,input.117">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4610,7 +4610,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -4624,7 +4624,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4668,7 +4668,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4682,7 +4682,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="468_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4692,7 +4692,7 @@
 		<layer id="241" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_30" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4700,7 +4700,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="468,input.121">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4744,7 +4744,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4758,7 +4758,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4802,7 +4802,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4816,7 +4816,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="488_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4826,7 +4826,7 @@
 		<layer id="248" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_31" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4834,7 +4834,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="488,input.125">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4858,7 +4858,7 @@
 		<layer id="251" name="__module.model.8/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4870,13 +4870,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="492">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="4" precision="FP32" names="493,input.127">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4920,7 +4920,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4934,7 +4934,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4978,7 +4978,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -4992,7 +4992,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="503_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5002,7 +5002,7 @@
 		<layer id="258" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_32" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5010,7 +5010,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="503,input.129">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5054,7 +5054,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5068,7 +5068,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5112,7 +5112,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5126,7 +5126,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="512_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5136,7 +5136,7 @@
 		<layer id="265" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_33" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5144,7 +5144,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="512,input.133">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5155,13 +5155,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5169,7 +5169,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="514,input.135">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5213,7 +5213,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5227,7 +5227,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5271,7 +5271,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5285,7 +5285,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="524_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5295,7 +5295,7 @@
 		<layer id="273" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_34" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5303,7 +5303,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="524,input.137">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5347,7 +5347,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5361,7 +5361,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5405,7 +5405,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5419,7 +5419,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="533_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5429,7 +5429,7 @@
 		<layer id="280" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_35" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5437,7 +5437,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="533,input.141">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5448,13 +5448,13 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5462,7 +5462,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="535">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5473,25 +5473,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5499,7 +5499,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="537,input.143">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5543,7 +5543,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5557,7 +5557,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5601,7 +5601,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5615,7 +5615,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="545_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5625,7 +5625,7 @@
 		<layer id="289" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_36" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5633,7 +5633,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="545,input.145">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5677,7 +5677,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5691,7 +5691,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5735,7 +5735,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5749,7 +5749,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="565,input.149">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5760,7 +5760,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="2, 2" pads_end="2, 2" kernel="5, 5" rounding_type="floor" auto_pad="explicit" index_element_type="i64" axis="2" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5768,13 +5768,13 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="570,input.151">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="I64">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5785,7 +5785,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="2, 2" pads_end="2, 2" kernel="5, 5" rounding_type="floor" auto_pad="explicit" index_element_type="i64" axis="2" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5793,13 +5793,13 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="575,input.153">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="I64">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5810,7 +5810,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="2, 2" pads_end="2, 2" kernel="5, 5" rounding_type="floor" auto_pad="explicit" index_element_type="i64" axis="2" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5818,13 +5818,13 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="580">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="I64">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5835,25 +5835,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5861,7 +5861,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="582,input.155">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5905,7 +5905,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5919,7 +5919,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5963,7 +5963,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5977,7 +5977,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="590_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5987,7 +5987,7 @@
 		<layer id="306" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_37" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -5995,7 +5995,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="590,input.157">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -6025,7 +6025,7 @@
 			<data mode="nearest" shape_calculation_mode="scales" coordinate_transformation_mode="asymmetric" nearest_mode="floor" antialias="false" pads_begin="0, 0, 0, 0" pads_end="0, 0, 0, 0" cube_coeff="-0.75" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -6039,7 +6039,7 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="595">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6050,13 +6050,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6064,7 +6064,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="598,input.161">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>960</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6108,7 +6108,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>960</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6122,7 +6122,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6166,7 +6166,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6180,7 +6180,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="617_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6190,7 +6190,7 @@
 		<layer id="317" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_38" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6198,7 +6198,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="617,input.163">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6222,7 +6222,7 @@
 		<layer id="320" name="__module.model.12/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6234,13 +6234,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="621">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="4" precision="FP32" names="622,input.165">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6284,7 +6284,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6298,7 +6298,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6342,7 +6342,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6356,7 +6356,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="632_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6366,7 +6366,7 @@
 		<layer id="327" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_39" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6374,7 +6374,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="632,input.167">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6418,7 +6418,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6432,7 +6432,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6476,7 +6476,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6490,7 +6490,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="641_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6500,7 +6500,7 @@
 		<layer id="334" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_40" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6508,7 +6508,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="641,input.171">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6552,7 +6552,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6566,7 +6566,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6610,7 +6610,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6624,7 +6624,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="652_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6634,7 +6634,7 @@
 		<layer id="341" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_41" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6642,7 +6642,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="652,input.175">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6686,7 +6686,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6700,7 +6700,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6744,7 +6744,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6758,7 +6758,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="661_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6768,7 +6768,7 @@
 		<layer id="348" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_42" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6776,7 +6776,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="661,input.179">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6787,25 +6787,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6813,7 +6813,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="664,input.181">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>768</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6857,7 +6857,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>768</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6871,7 +6871,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6915,7 +6915,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6929,7 +6929,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="672_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6939,7 +6939,7 @@
 		<layer id="356" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_43" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6947,7 +6947,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="672,input.183">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6977,7 +6977,7 @@
 			<data mode="nearest" shape_calculation_mode="scales" coordinate_transformation_mode="asymmetric" nearest_mode="floor" antialias="false" pads_begin="0, 0, 0, 0" pads_end="0, 0, 0, 0" cube_coeff="-0.75" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -6991,7 +6991,7 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="677">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7002,13 +7002,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7016,7 +7016,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="680,input.187">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7060,7 +7060,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7074,7 +7074,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7118,7 +7118,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7132,7 +7132,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="699_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7142,7 +7142,7 @@
 		<layer id="367" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_44" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7150,7 +7150,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="699,input.189">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7174,7 +7174,7 @@
 		<layer id="370" name="__module.model.15/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7186,13 +7186,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="703">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="4" precision="FP32" names="704,input.191">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7236,7 +7236,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7250,7 +7250,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7294,7 +7294,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7308,7 +7308,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="714_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7318,7 +7318,7 @@
 		<layer id="377" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_45" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7326,7 +7326,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="714,input.193">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7370,7 +7370,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7384,7 +7384,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7428,7 +7428,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7442,7 +7442,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="723_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7452,7 +7452,7 @@
 		<layer id="384" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_46" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7460,7 +7460,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="723,input.197">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7504,7 +7504,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7518,7 +7518,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7562,7 +7562,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7576,7 +7576,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="734_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7586,7 +7586,7 @@
 		<layer id="391" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_47" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7594,7 +7594,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="734,input.201">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7638,7 +7638,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7652,7 +7652,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7696,7 +7696,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7710,7 +7710,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="743_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7720,7 +7720,7 @@
 		<layer id="398" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_48" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7728,7 +7728,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="743,input.205">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7739,25 +7739,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>96</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7765,7 +7765,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="746,input.207">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7809,7 +7809,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7823,7 +7823,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7867,7 +7867,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7881,7 +7881,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="754_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7891,7 +7891,7 @@
 		<layer id="406" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_49" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7899,7 +7899,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="754,input.209">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7943,7 +7943,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -7957,7 +7957,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8001,7 +8001,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8015,7 +8015,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="977_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8025,7 +8025,7 @@
 		<layer id="413" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_50" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8033,7 +8033,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="977,input.267">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8077,7 +8077,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8091,7 +8091,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8135,7 +8135,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8149,7 +8149,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="986_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8159,7 +8159,7 @@
 		<layer id="420" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_51" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8167,7 +8167,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="986,input.271">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8211,7 +8211,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8225,7 +8225,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8269,7 +8269,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8283,7 +8283,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="994">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8327,7 +8327,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8341,7 +8341,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8385,7 +8385,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8399,7 +8399,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1005_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8409,7 +8409,7 @@
 		<layer id="433" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_52" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8417,7 +8417,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1005,input.275">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8461,7 +8461,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8475,7 +8475,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8519,7 +8519,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8533,7 +8533,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1014_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8543,7 +8543,7 @@
 		<layer id="440" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_53" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8551,7 +8551,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1014,input.279">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8595,7 +8595,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8609,7 +8609,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8653,7 +8653,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8667,7 +8667,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1022">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8678,13 +8678,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>80</dim>
 					<dim>80</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8692,7 +8692,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1024,xi.1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8714,7 +8714,7 @@
 			<data special_zero="false" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8725,7 +8725,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1143">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>6400</dim>
 				</port>
@@ -8768,7 +8768,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>80</dim>
 					<dim>80</dim>
@@ -8782,7 +8782,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8826,7 +8826,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8840,7 +8840,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="768_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8850,7 +8850,7 @@
 		<layer id="456" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_54" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8858,7 +8858,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="768,input.213">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8869,13 +8869,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8883,7 +8883,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="772,input.215">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8927,7 +8927,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8941,7 +8941,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8985,7 +8985,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -8999,7 +8999,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="791_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9009,7 +9009,7 @@
 		<layer id="464" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_55" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9017,7 +9017,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="791,input.217">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9041,7 +9041,7 @@
 		<layer id="467" name="__module.model.18/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9053,13 +9053,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="795">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="4" precision="FP32" names="796,input.219">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9103,7 +9103,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9117,7 +9117,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9161,7 +9161,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9175,7 +9175,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="806_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9185,7 +9185,7 @@
 		<layer id="474" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_56" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9193,7 +9193,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="806,input.221">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9237,7 +9237,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9251,7 +9251,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9295,7 +9295,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9309,7 +9309,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="815_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9319,7 +9319,7 @@
 		<layer id="481" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_57" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9327,7 +9327,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="815,input.225">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9371,7 +9371,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9385,7 +9385,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9429,7 +9429,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9443,7 +9443,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="826_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9453,7 +9453,7 @@
 		<layer id="488" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_58" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9461,7 +9461,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="826,input.229">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9505,7 +9505,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9519,7 +9519,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9563,7 +9563,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9577,7 +9577,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="835_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9587,7 +9587,7 @@
 		<layer id="495" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_59" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9595,7 +9595,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="835,input.233">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9606,25 +9606,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9632,7 +9632,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="838,input.235">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>768</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9676,7 +9676,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>768</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9690,7 +9690,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9734,7 +9734,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9748,7 +9748,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="846_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9758,7 +9758,7 @@
 		<layer id="503" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_60" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9766,7 +9766,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="846,input.237">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9810,7 +9810,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9824,7 +9824,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9868,7 +9868,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9882,7 +9882,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1035_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9892,7 +9892,7 @@
 		<layer id="510" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_61" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9900,7 +9900,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1035,input.283">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9944,7 +9944,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -9958,7 +9958,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10002,7 +10002,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10016,7 +10016,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1044_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10026,7 +10026,7 @@
 		<layer id="517" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_62" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10034,7 +10034,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1044,input.287">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10078,7 +10078,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10092,7 +10092,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10136,7 +10136,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10150,7 +10150,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1052">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10194,7 +10194,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10208,7 +10208,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10252,7 +10252,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10266,7 +10266,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1063_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10276,7 +10276,7 @@
 		<layer id="530" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_63" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10284,7 +10284,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1063,input.291">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10328,7 +10328,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10342,7 +10342,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10386,7 +10386,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10400,7 +10400,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1072_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10410,7 +10410,7 @@
 		<layer id="537" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_64" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10418,7 +10418,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1072,input.295">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10462,7 +10462,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10476,7 +10476,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10520,7 +10520,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10534,7 +10534,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1080">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10545,13 +10545,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>40</dim>
 					<dim>40</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10559,7 +10559,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1082,xi.3">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10581,7 +10581,7 @@
 			<data special_zero="false" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10592,7 +10592,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1145">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>1600</dim>
 				</port>
@@ -10635,7 +10635,7 @@
 			<data strides="2, 2" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>40</dim>
 					<dim>40</dim>
@@ -10649,7 +10649,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10693,7 +10693,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10707,7 +10707,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="860_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10717,7 +10717,7 @@
 		<layer id="553" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_65" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10725,7 +10725,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="860,input.241">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10736,13 +10736,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>384</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10750,7 +10750,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="864,input.243">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>960</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10794,7 +10794,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>960</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10808,7 +10808,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10852,7 +10852,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10866,7 +10866,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="883_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10876,7 +10876,7 @@
 		<layer id="561" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_66" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10884,7 +10884,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="883,input.245">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10908,7 +10908,7 @@
 		<layer id="564" name="__module.model.21/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10920,13 +10920,13 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="887">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="4" precision="FP32" names="888,input.247">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10970,7 +10970,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -10984,7 +10984,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11028,7 +11028,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11042,7 +11042,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="898_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11052,7 +11052,7 @@
 		<layer id="571" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_67" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11060,7 +11060,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="898,input.249">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11104,7 +11104,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11118,7 +11118,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11162,7 +11162,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11176,7 +11176,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="907_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11186,7 +11186,7 @@
 		<layer id="578" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_68" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11194,7 +11194,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="907,input.253">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11238,7 +11238,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11252,7 +11252,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11296,7 +11296,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11310,7 +11310,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="918_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11320,7 +11320,7 @@
 		<layer id="585" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_69" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11328,7 +11328,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="918,input.257">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11372,7 +11372,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11386,7 +11386,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11430,7 +11430,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11444,7 +11444,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="927_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11454,7 +11454,7 @@
 		<layer id="592" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_70" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11462,7 +11462,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="927,input.261">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11473,25 +11473,25 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="3" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>288</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11499,7 +11499,7 @@
 			</input>
 			<output>
 				<port id="4" precision="FP32" names="930,input.263">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11543,7 +11543,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1152</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11557,7 +11557,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11601,7 +11601,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11615,7 +11615,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="938_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11625,7 +11625,7 @@
 		<layer id="600" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_71" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11633,7 +11633,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="938,input.265">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11677,7 +11677,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11691,7 +11691,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11735,7 +11735,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11749,7 +11749,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1093_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11759,7 +11759,7 @@
 		<layer id="607" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_72" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11767,7 +11767,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1093,input.301">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11811,7 +11811,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11825,7 +11825,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11869,7 +11869,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11883,7 +11883,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1102_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11893,7 +11893,7 @@
 		<layer id="614" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_73" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11901,7 +11901,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1102,input.305">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11945,7 +11945,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -11959,7 +11959,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12003,7 +12003,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12017,7 +12017,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1110">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12061,7 +12061,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>576</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12075,7 +12075,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12119,7 +12119,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12133,7 +12133,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1121_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12143,7 +12143,7 @@
 		<layer id="627" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_74" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12151,7 +12151,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1121,input.309">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12195,7 +12195,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="1, 1" pads_end="1, 1" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12209,7 +12209,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12253,7 +12253,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12267,7 +12267,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1130_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12277,7 +12277,7 @@
 		<layer id="634" name="__module.model.22.cv3.2.1.act/aten::silu_/Swish_75" type="Swish" version="opset4">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12285,7 +12285,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1130,input.313">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12329,7 +12329,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>192</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12343,7 +12343,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12387,7 +12387,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12401,7 +12401,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1138">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12412,13 +12412,13 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>20</dim>
 					<dim>20</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12426,7 +12426,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1140,xi">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12448,7 +12448,7 @@
 			<data special_zero="false" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>20</dim>
 					<dim>20</dim>
@@ -12459,7 +12459,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1147">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>400</dim>
 				</port>
@@ -12469,24 +12469,24 @@
 			<data axis="2" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>6400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>1600</dim>
 				</port>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="1149">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>8400</dim>
 				</port>
@@ -12509,7 +12509,7 @@
 		<layer id="647" name="__module.model.22/aten::split_with_sizes/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>65</dim>
 					<dim>8400</dim>
 				</port>
@@ -12520,12 +12520,12 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="1152,x_1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="4" precision="FP32" names="1153,cls">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>8400</dim>
 				</port>
@@ -12546,7 +12546,7 @@
 			<data special_zero="false" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>64</dim>
 					<dim>8400</dim>
 				</port>
@@ -12556,7 +12556,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1158">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>16</dim>
 					<dim>8400</dim>
@@ -12574,7 +12574,7 @@
 		<layer id="651" name="__module.model.22.dfl/aten::transpose/Transpose" type="Transpose" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>16</dim>
 					<dim>8400</dim>
@@ -12585,7 +12585,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1159">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>16</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12596,7 +12596,7 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>16</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12604,7 +12604,7 @@
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1160,input">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>16</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12648,7 +12648,7 @@
 			<data strides="1, 1" dilations="1, 1" pads_begin="0, 0" pads_end="0, 0" auto_pad="explicit" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>16</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12662,7 +12662,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1166">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12684,7 +12684,7 @@
 			<data special_zero="false" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
@@ -12695,7 +12695,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1168,distance">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -12705,7 +12705,7 @@
 			<data output_type="i32" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -12833,7 +12833,7 @@
 		<layer id="669" name="__module.model.22/prim::ListUnpack/VariadicSplit" type="VariadicSplit" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -12844,12 +12844,12 @@
 			</input>
 			<output>
 				<port id="3" precision="FP32" names="1171,lt">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="4" precision="FP32" names="1172,rb">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12864,14 +12864,14 @@
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1173,x1y1">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12886,14 +12886,14 @@
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1174,x2y2">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12903,19 +12903,19 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1175">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12955,7 +12955,7 @@
 			<data auto_broadcast="numpy" m_pythondiv="true" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12967,7 +12967,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1176,c_xy">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12977,19 +12977,19 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1177,wh">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
@@ -12999,19 +12999,19 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>2</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1179">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -13051,7 +13051,7 @@
 			<data auto_broadcast="numpy" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -13063,7 +13063,7 @@
 			</input>
 			<output>
 				<port id="2" precision="FP32" names="1180,dbox">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
@@ -13072,14 +13072,14 @@
 		<layer id="681" name="__module.model.22/aten::sigmoid/Sigmoid" type="Sigmoid" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="1" precision="FP32" names="1181">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>8400</dim>
 				</port>
@@ -13089,19 +13089,19 @@
 			<data axis="1" />
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>4</dim>
 					<dim>8400</dim>
 				</port>
 				<port id="1" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>1</dim>
 					<dim>8400</dim>
 				</port>
 			</input>
 			<output>
 				<port id="2" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>5</dim>
 					<dim>8400</dim>
 				</port>
@@ -13110,7 +13110,7 @@
 		<layer id="683" name="Result_4500" type="Result" version="opset1">
 			<input>
 				<port id="0" precision="FP32">
-					<dim>3</dim>
+					<dim>1</dim>
 					<dim>5</dim>
 					<dim>8400</dim>
 				</port>

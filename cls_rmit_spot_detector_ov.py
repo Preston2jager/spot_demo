@@ -7,7 +7,7 @@ class SpotDetector:
     
     my_target_class = ["bottle"]
     
-    def __init__(self, model_dir: str = "yolov8m_rmit_openvino_model/", device: str = "intel:npu"):
+    def __init__(self, model_dir: str = "yolov8m_rmit_openvino_model/", device: str = "intel:gpu"):
         """
         :param model_dir: OpenVINO 导出的模型文件夹路径
         :param device: 'NPU', 'CPU', 或 'GPU' (Intel 核显)

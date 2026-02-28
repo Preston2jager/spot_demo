@@ -17,6 +17,10 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "openvino>=2026.0.0",
     "pynput>=1.8.1",
+    "pyvista[trame]>=0.47.1",
+    "trame>=3.0.0",
+    "trame-vtk>=2.11.1",
+    "trame-vuetify>=3.2.1",
     "ultralytics>=8.3.225",
     "vtk>=9.5.2",
 ]

@@ -80,7 +80,7 @@ class SpotAgent:
             if self.navigation_state:
                 self.graph = self.get_current_graph()
                 if not self.graph:
-                    self.graph = self.upload_graph_and_snapshots("./Maps/lv12_office")
+                    self.graph = self.upload_graph_and_snapshots("./Maps/amp2")
                     # List of all maps
                     # ./Maps/lv12_office 
                 if not self.graph:
@@ -217,7 +217,7 @@ class SpotAgent:
             print(f"Arm out failed: {e}")
 
     @SpotTracker("Arm Release and Stow", exit_on_fail=False)
-    def _arm_release(self):
+    def _arm_release(self, bin=False):
         """
         抓取成功后调用：将物品移动到低处 -> 松开抓手 -> 收起手臂
         """
@@ -226,26 +226,32 @@ class SpotAgent:
         try:
             root_frame = GRAV_ALIGNED_BODY_FRAME_NAME
             print("Moving arm to a lower position to release...")
-            target_x = 0.85   # 身体正前方 0.85 米
-            target_y = 0.0    # 左右居中
-            target_z = -0.20  # 尽可能低的位置 (基于身体中心向下 0.4 米)
-            pitch_rad = 60.0 * math.pi / 180.0 
+            if bin:
+                target_x = 0.8   #
+                target_y = 0.0    # 左右居中
+                target_z = 0.2  # 尽可能低的位置 (基于身体中心向下 0.4 米)
+                pitch_rad = 60.0 * math.pi / 180.0 
+            else:
+                target_x = 1   # 身体正前方 0.85 米
+                target_y = 0.0    # 左右居中
+                target_z = -0.20  # 尽可能低的位置 (基于身体中心向下 0.4 米)
+                pitch_rad = 60.0 * math.pi / 180.0 
             q = math_helpers.Quat.from_pitch(pitch_rad)
             lower_cmd = RobotCommandBuilder.arm_pose_command(
                 target_x, target_y, target_z,
                 q.w, q.x, q.y, q.z, 
                 root_frame, 
-                2.5  # 因为手上拿着东西，给 2.5 秒时间让下降动作更平滑
+                1.0  # 因为手上拿着东西，给 2.5 秒时间让下降动作更平滑
             )
             self.cmd_client.robot_command(lower_cmd)
-            time.sleep(2.5) # 必须等待移动完成，否则可能会在半空中直接扔掉
+            time.sleep(1.0) # 必须等待移动完成，否则可能会在半空中直接扔掉
             print("Releasing object...")
             self.cmd_client.robot_command(RobotCommandBuilder.claw_gripper_open_command())
             time.sleep(1.0) # 给物品掉落的时间
             print("Stowing arm...")
             stow_cmd = RobotCommandBuilder.arm_stow_command()
             self.cmd_client.robot_command(stow_cmd)
-            time.sleep(2.0) # 等待 stow 指令开始执行
+            time.sleep(0.5) # 等待 stow 指令开始执行
             print("Object released and arm stowed.")
         except Exception as e:
             print(f"Arm release failed: {e}")
@@ -368,9 +374,7 @@ class SpotAgent:
         print("Scanning for targets")
         #camera_sources = ["hand_color_image"]
         camera_sources = [
-            'hand_color_image', 
-            'left_fisheye_image', 
-            'right_fisheye_image'
+            'hand_color_image'
         ]
         image_requests = [build_image_request(src) for src in camera_sources]
         try:
@@ -406,6 +410,119 @@ class SpotAgent:
         target_img_resp = resp_map[cam_name]
         return target_img_resp, cam_name, cx, cy, cls_name
     
+    @SpotTracker("Scanning", exit_on_fail=False)
+    def find_target_2(self, yolo_detector):
+        print("Scanning for targets")
+        
+        # 1. 定义视觉相机与其对应的“对齐深度相机”映射关系
+        VISUAL_TO_DEPTH_MAP = {
+            'hand_color_image': 'hand_depth_in_hand_color_frame',
+            'left_fisheye_image': 'left_depth_in_visual_frame',
+            'right_fisheye_image': 'right_depth_in_visual_frame'
+        }
+        
+        camera_sources = list(VISUAL_TO_DEPTH_MAP.keys())
+        depth_sources = list(VISUAL_TO_DEPTH_MAP.values())
+        
+        # 将视觉图和深度图一并请求，保证快照时间戳一致
+        all_sources = camera_sources + depth_sources
+        image_requests = [build_image_request(src) for src in all_sources]
+        
+        try:
+            image_responses = self.img_client.get_image(image_requests) # type: ignore
+        except Exception as e:
+            print(f"Failed to acquire images: {e}")
+            return None
+            
+        images_to_detect = {}
+        depth_images = {}
+        resp_map = {} 
+        
+        # 2. 分类解析视觉图像和深度图像
+        for img_resp in image_responses: # type: ignore
+            cam_name = img_resp.source.name # type: ignore
+            resp_map[cam_name] = img_resp
+            
+            # 解析深度图
+            if cam_name in depth_sources:
+                try:
+                    # Spot 的深度图通常是 16-bit 格式，单位是毫米 (mm)
+                    # 如果格式是 RAW，使用 numpy 解析；如果是压缩格式（如PNG），使用 OpenCV AnyDepth 解析
+                    if img_resp.shot.image.format == img_resp.shot.image.FORMAT_RAW:
+                        img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint16)
+                        cv_depth = img_data.reshape(img_resp.shot.image.rows, img_resp.shot.image.cols)
+                    else:
+                        img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint8)
+                        cv_depth = cv2.imdecode(img_data, cv2.IMREAD_ANYDEPTH)
+                        
+                    if cv_depth is not None:
+                        depth_images[cam_name] = cv_depth
+                except Exception as e:
+                    print(f"Failed to decode depth image for {cam_name}: {e}")
+                    
+            # 解析彩色/视觉图
+            else:
+                img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint8) # type: ignore
+                cv_img = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
+                if cv_img is not None:
+                    images_to_detect[cam_name] = cv_img 
+                    
+        if not images_to_detect:
+            print("Failed to decode any images for detection.")
+            return None
+            
+        print("[Grasp] 🧠 图像获取成功，开始 YOLO 识别...")
+        detections = yolo_detector.detect_targets_in_batch(images_to_detect, conf=0.1)
+        if not detections:
+            print("[Grasp] ❌ 未能在当前视野中找到任何目标。")
+            return None
+            
+        # 3. 距离校验过滤 (最大距离 4 米)
+        MAX_DISTANCE_MM = 4000 
+        valid_detections = []
+        
+        for hit in detections:
+            cam_name = hit["camera"]
+            cx, cy = int(hit["cx"]), int(hit["cy"])
+            depth_cam_name = VISUAL_TO_DEPTH_MAP.get(cam_name)
+            
+            if depth_cam_name and depth_cam_name in depth_images:
+                depth_img = depth_images[depth_cam_name]
+                
+                # 确保提取坐标没有越界
+                if 0 <= cy < depth_img.shape[0] and 0 <= cx < depth_img.shape[1]:
+                    distance_mm = depth_img[cy, cx]
+                    
+                    # 距离过滤：>0 排除传感器盲区失效黑洞，<= 4000 确保在4米范围内
+                    if 0 < distance_mm <= MAX_DISTANCE_MM:
+                        hit["distance_mm"] = distance_mm # 记录距离备用
+                        valid_detections.append(hit)
+                        print(f"✔️ 目标有效: {hit['class']} 在 {distance_mm/1000.0:.2f}米处.")
+                    else:
+                        print(f"❌ 目标过滤: {hit['class']} 在 {distance_mm/1000.0:.2f}米处 (超出4米范围或无效).")
+                else:
+                    print(f"⚠️ 越界: ({cx}, {cy}) 不在深度图范围内.")
+            else:
+                # 容错处理：如果没有获取到深度图，默认先保留该目标（视你实际安全需求也可直接丢弃）
+                print(f"⚠️ 缺少对应的深度数据，保守保留 {hit['class']} 目标.")
+                valid_detections.append(hit)
+
+        if not valid_detections:
+            print("[Grasp] ❌ 视野内发现了目标，但均在4米以外或不可达范围，丢弃。")
+            return None
+            
+        # 这里默认取了有效目标中的第一个，你也可以改为根据 distance_mm 排序取最近的
+        # top_hit = sorted(valid_detections, key=lambda x: x.get("distance_mm", float('inf')))[0]
+        top_hit = valid_detections[0]
+        
+        cam_name = top_hit["camera"]
+        cx, cy = top_hit["cx"], top_hit["cy"]
+        cls_name = top_hit["class"]
+        
+        # ⚠️ 关键修复：返回当时的图像响应对象，抓取时需要里面的相机内参和坐标系快照
+        target_img_resp = resp_map[cam_name]
+        return target_img_resp, cam_name, cx, cy, cls_name
+    
 
     @SpotTracker("Grasping", exit_on_fail=False)
     def grasp_object(self, target_img_resp, cam_name, cx, cy, cls_name, timeout_sec=30.0):
@@ -427,11 +544,11 @@ class SpotAgent:
         
         grasp.grasp_params.grasp_params_frame_name = VISION_FRAME_NAME
         
-        constraint_top_down = grasp.grasp_params.allowable_orientation.add()
-        constraint_top_down.vector_alignment_with_tolerance.axis_on_gripper_ewrt_gripper.CopyFrom(geometry_pb2.Vec3(x=1, y=0, z=0)) # type: ignore
-        constraint_top_down.vector_alignment_with_tolerance.axis_to_align_with_ewrt_frame.CopyFrom(geometry_pb2.Vec3(x=0, y=0, z=-1)) # type: ignore
+        #constraint_top_down = grasp.grasp_params.allowable_orientation.add()
+        #constraint_top_down.vector_alignment_with_tolerance.axis_on_gripper_ewrt_gripper.CopyFrom(geometry_pb2.Vec3(x=1, y=0, z=0)) # type: ignore
+        #constraint_top_down.vector_alignment_with_tolerance.axis_to_align_with_ewrt_frame.CopyFrom(geometry_pb2.Vec3(x=0, y=0, z=-1)) # type: ignore
         # 容差放宽到 0.25 (约 15度)，给机械臂留出足够的运动空间
-        constraint_top_down.vector_alignment_with_tolerance.threshold_radians = 0.25 
+        #constraint_top_down.vector_alignment_with_tolerance.threshold_radians = 0.78 
         # =================================================================
 
         manip_req = manipulation_api_pb2.ManipulationApiRequest(pick_object_in_image=grasp) # type: ignore
@@ -476,6 +593,13 @@ class SpotAgent:
                     print("✅ 物理验证通过，确实抓到了物品！")
                     
                     try:
+                        # 🌟 新增：让机器狗恢复默认站立高度
+                        print("🐕 正在恢复标准站立姿态...")
+                        stand_cmd = RobotCommandBuilder.synchro_stand_command()
+                        # 发送站立指令（假设你的 cmd_client 已经初始化）
+                        self.cmd_client.robot_command(stand_cmd)
+                        time.sleep(0.2) # 给它一点时间站起来
+                        
                         print("🔄 正在将物体举高到绝对位置...")
                         abs_x, abs_y, abs_z = 0.75, 0.0, 0.35
                         q = math_helpers.Quat.from_pitch(15.0 * math.pi / 180.0)
@@ -485,13 +609,15 @@ class SpotAgent:
                             GRAV_ALIGNED_BODY_FRAME_NAME, 2.5 
                         )
                         self.cmd_client.robot_command(lift_cmd)
-                        time.sleep(1.0) 
+                        time.sleep(0.2) 
+                        
                         carry_cmd = RobotCommandBuilder.arm_carry_command()
                         self.cmd_client.robot_command(carry_cmd) # type: ignore
                         print("✅ 已切换至 Carry 模式。")
+                        
                     except Exception as e:
-                        print(f"❌ 举高动作失败: {e}")
-                    return True  
+                        print(f"❌ 举高/站立动作失败: {e}")
+                    return True
                     
                 elif response.current_state == manipulation_api_pb2.MANIP_STATE_GRASP_FAILED or 'FAILED' in state_name or 'NO_SOLUTION' in state_name: # type: ignore
                     print(f"❌ 抓取失败/无运动解: {state_name}")
