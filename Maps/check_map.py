@@ -350,16 +350,14 @@ def create_plan_view_interactor():
     - 左键：平移 (Pan)
     - 中键：平面旋转 (Roll)
     - 右键/滚轮：缩放 (Zoom)
+    - 按键 'C'：高清截图并保存为 PNG
     """
     style = vtk.vtkInteractorStyleImage()
-    
-    # 用 Python 函数闭包模拟状态机，避免复杂的类继承
     style.is_rotating = False
     
     def left_press(obj, event):
         pos = style.GetInteractor().GetEventPosition()
         style.FindPokedRenderer(pos[0], pos[1])
-        # 强制将左键事件映射到底层处理平移的逻辑
         style.OnMiddleButtonDown() 
         
     def left_release(obj, event):
@@ -379,24 +377,59 @@ def create_plan_view_interactor():
             last_pos = interactor.GetLastEventPosition()
             curr_pos = interactor.GetEventPosition()
             
-            # 计算鼠标横向拖拽的距离
             dx = curr_pos[0] - last_pos[0]
             
             renderer = style.GetCurrentRenderer()
             if renderer:
                 camera = renderer.GetActiveCamera()
-                # 滚动相机的视野角度 (就像转方向盘一样)
                 camera.Roll(dx * 0.4) 
                 interactor.Render()
         else:
             style.OnMouseMove()
+
+    # --- 新增的截图功能 ---
+# --- 新增的反色截图功能 ---
+    def key_press(obj, event):
+        interactor = obj.GetInteractor()
+        key = interactor.GetKeySym()
+        
+        # 捕捉键盘上的 'C' 键
+        if key == 'c' or key == 'C':
+            window = interactor.GetRenderWindow()
             
-    # 注入自定义钩子
+            # 1. 抓取当前窗口像素
+            w2i = vtk.vtkWindowToImageFilter()
+            w2i.SetInput(window)
+            w2i.SetScale(2) # 2 倍超采样放大
+            w2i.SetInputBufferTypeToRGB()
+            w2i.ReadFrontBufferOff()
+            w2i.Update()
+            
+            # 2. 核心反色逻辑：利用 numpy 直接修改底层像素矩阵
+            image_data = w2i.GetOutput()
+            vtk_array = image_data.GetPointData().GetScalars()
+            np_array = numpy_support.vtk_to_numpy(vtk_array)
+            
+            # 矩阵广播运算，RGB 全部反转（黑变白，白变黑）
+            np_array[:] = 255 - np_array 
+            vtk_array.Modified() # 通知 VTK 数据已更改
+            
+            # 3. 写入 PNG 文件
+            writer = vtk.vtkPNGWriter()
+            filename = f"spot_map_capture_{int(time.time())}.png"
+            writer.SetFileName(filename)
+            writer.SetInputData(image_data) # 注意：因为数据被修改了，这里必须用 SetInputData
+            writer.Write()
+            
+            print(f"✅ 反色超清截图成功！已保存至当前目录: {filename}")
+            
+    # 注入所有钩子
     style.AddObserver("LeftButtonPressEvent", left_press)
     style.AddObserver("LeftButtonReleaseEvent", left_release)
     style.AddObserver("MiddleButtonPressEvent", middle_press)
     style.AddObserver("MiddleButtonReleaseEvent", middle_release)
     style.AddObserver("MouseMoveEvent", mouse_move)
+    style.AddObserver("KeyPressEvent", key_press) # 注入按键事件
     
     return style
 
