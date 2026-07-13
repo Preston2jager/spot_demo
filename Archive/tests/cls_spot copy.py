@@ -1,0 +1,549 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import time
+import cv2
+from typing import Optional, Iterator, Tuple, Callable
+import numpy as np
+
+
+import bosdyn.client
+import bosdyn.client.util
+from bosdyn.client.lease import LeaseClient, LeaseKeepAlive
+from bosdyn.client.robot_command import RobotCommandClient, RobotCommandBuilder, blocking_stand
+from bosdyn.client.image import ImageClient
+from bosdyn.client.robot_state import RobotStateClient
+
+
+class SpotAgent:
+    """
+    轻量 Spot 管理类（初始化即自动登录 + 自动拿租约）
+    - _auto_login(username, password): 连接/认证/时间同步/初始化客户端
+    - _get_lease(force=False): 获取 body 租约；force=True 时用 take() 强夺租约
+    便捷方法：
+    - power_on_and_stand(): 上电并站立
+    - send_velocity(vx, vy, vrot, hold): 速度命令（带 end_time_secs）
+    - shutdown(power_off=False): 释放租约，可选断电
+    """
+
+    def __init__(
+        self,
+        hostname: str,
+        username: str,
+        password: str,
+        *,
+        client_name: str = "SpotAgent",
+        keep_alive_period_sec: float = 2.0,
+        force_lease: bool = True,
+    ):
+        self.hostname = hostname            
+        self.client_name = client_name
+        self.keep_alive_period_sec = keep_alive_period_sec
+
+        self.sdk: Optional[bosdyn.client.Sdk] = None
+        self.robot: Optional[bosdyn.client.Robot] = None
+
+        self.lease_client: Optional[LeaseClient] = None
+        self.cmd_client: Optional[RobotCommandClient] = None
+        self.img_client: Optional[ImageClient] = None
+        self.state_client: Optional[RobotStateClient] = None
+
+        self._lease_keepalive: Optional[LeaseKeepAlive] = None
+
+        self.default_hold = 0.9  # 速度命令有效窗口，避免 ExpiredError
+
+        self._auto_login(username, password)
+        self._get_lease(force=force_lease)
+
+    # -------- Private API --------
+
+    def _auto_login(self, username: str, password: str):
+        self.sdk = bosdyn.client.create_standard_sdk(self.client_name)
+        self.robot = self.sdk.create_robot(self.hostname)
+        self.robot.authenticate(username, password)
+        try:
+            self.robot.time_sync.wait_for_sync()
+        except Exception:
+            self.robot.time_sync.start()
+            self.robot.time_sync.wait_for_sync()
+        self.lease_client = self.robot.ensure_client(LeaseClient.default_service_name)
+        self.cmd_client = self.robot.ensure_client(RobotCommandClient.default_service_name)
+        self.img_client = self.robot.ensure_client(ImageClient.default_service_name)
+        self.state_client = self.robot.ensure_client(RobotStateClient.default_service_name)
+
+    def _make_keepalive(self, *, must_acquire: bool, return_at_exit: bool) -> LeaseKeepAlive:
+        try:
+            return LeaseKeepAlive(
+                self.lease_client,
+                must_acquire=must_acquire,
+                return_at_exit=return_at_exit,
+                period_sec=self.keep_alive_period_sec,
+            )
+        except TypeError:
+            return LeaseKeepAlive(
+                self.lease_client,
+                must_acquire=must_acquire,
+                return_at_exit=return_at_exit,
+            )
+        
+    def _get_lease(self, force: bool = False) -> LeaseKeepAlive:
+        if self.lease_client is None:
+            raise RuntimeError("lease_client 尚未初始化，请先调用 _auto_login。")
+        if self._lease_keepalive is not None:
+            try:
+                self._lease_keepalive.shutdown()
+            except Exception:
+                pass
+            self._lease_keepalive = None
+        if force:
+            try:
+                self.lease_client.take()
+            except Exception:
+                self.lease_client.acquire()
+            self._lease_keepalive = self._make_keepalive(must_acquire=False, return_at_exit=True)
+        else:
+            self._lease_keepalive = self._make_keepalive(must_acquire=True, return_at_exit=True)
+        return self._lease_keepalive
+
+    def _read_char(self):
+        import sys, select
+        if not select.select([sys.stdin], [], [], 0)[0]:
+            return None
+        return sys.stdin.read(1)
+
+    @staticmethod
+    def _resize_for_display(frame, target_w: int, target_h: int, method: str = "lanczos"):
+        import cv2
+        interp = {
+            "nearest": cv2.INTER_NEAREST,
+            "linear":  cv2.INTER_LINEAR,
+            "cubic":   cv2.INTER_CUBIC,
+            "lanczos": cv2.INTER_LANCZOS4,
+            "area":    cv2.INTER_AREA,
+        }.get(method, cv2.INTER_LANCZOS4)
+        return cv2.resize(frame, (target_w, target_h), interpolation=interp)
+
+    # -------- Public API --------
+
+    def power_on_and_stand(self, timeout_sec: float = 20.0, stand_timeout_sec: float = 10.0):
+        if self.robot is None or self.cmd_client is None:
+            raise RuntimeError("尚未登录或初始化客户端，请先调用 _auto_login。")
+        if not self.robot.is_powered_on():
+            print("[robot] 上电中...")
+            self.robot.power_on(timeout_sec=timeout_sec)
+        print("[robot] 站立中...")
+        blocking_stand(self.cmd_client, timeout_sec=stand_timeout_sec)
+
+    def shutdown(self, power_off: bool = False):
+        if self._lease_keepalive is not None:
+            try:
+                self._lease_keepalive.shutdown()
+            except Exception:
+                pass
+            self._lease_keepalive = None
+
+        if power_off and self.robot is not None:
+            try:
+                self.robot.power_off(cut_immediately=False)
+            except Exception:
+                pass
+
+    def send_velocity(self, v_x: float, v_y: float, v_rot: float, hold: Optional[float] = None):
+        if self.cmd_client is None:
+            raise RuntimeError("cmd_client 未初始化，请先调用 _auto_login。")
+        hold = self.default_hold if hold is None else hold
+        cmd = RobotCommandBuilder.synchro_velocity_command(v_x=v_x, v_y=v_y, v_rot=v_rot)
+        self.cmd_client.robot_command(cmd, end_time_secs=time.time() + hold)
+
+    # -------- Demo API --------
+
+    def handcam_on(
+            self,
+            window_title: str = "Spot HandCam",
+            *,
+            width: int = 1280,
+            height: int = 960,
+            fps: float = 15.0,
+            jpeg_quality: int = 70,
+            source: str = "hand_color_image",
+        ) -> None:
+            """
+            仅打开手爪，不改变手臂/手腕位姿；实时显示 hand_* 相机画面。
+            - 假定外部已完成登录/拿租约/上电/站立。
+            - 画面朝向以当前手臂姿态为准（不在此处调整）。
+            - 按 q 或 Esc 退出窗口。
+            """
+            from bosdyn.api import image_pb2
+            from bosdyn.client.image import build_image_request
+            from bosdyn.client.robot_command import RobotCommandBuilder
+            from bosdyn.client.robot_state import RobotStateClient
+            from bosdyn.client.frame_helpers import (
+                VISION_FRAME_NAME, HAND_FRAME_NAME, get_a_tform_b, math_helpers
+            )
+
+            if self.cmd_client is None or self.img_client is None:
+                raise RuntimeError("SpotAgent 未初始化 cmd_client/img_client，请先 _auto_login 并获取租约。")
+
+            try:
+                self.cmd_client.robot_command(RobotCommandBuilder.claw_gripper_open_command())
+                time.sleep(0.4)
+                print("[gripper] 已发送打开指令。")
+            except Exception as e:
+                print(f"[gripper] 打开失败：{e}")
+
+            try:
+                from bosdyn.client.frame_helpers import (
+                    HAND_FRAME_NAME, BODY_FRAME_NAME, GRAV_ALIGNED_BODY_FRAME_NAME,
+                    get_a_tform_b, math_helpers
+                )
+                state_client = getattr(self, "state_client", None) or RobotStateClient(self._robot)
+                snapshot = state_client.get_robot_state().kinematic_state.transforms_snapshot
+
+                # ✅ 选择一个随机体移动的根系：
+                # - GRAV_ALIGNED_BODY_FRAME_NAME：随机体 yaw 旋转，pitch/roll 对齐重力，更稳
+                # - BODY_FRAME_NAME：完全跟随机体（含 pitch/roll）
+                root_frame = GRAV_ALIGNED_BODY_FRAME_NAME
+
+                # 当前“根系 -> 手”变换
+                root_T_hand = get_a_tform_b(snapshot, root_frame, HAND_FRAME_NAME)
+
+                # 在“手系”里定义你原来的小偏置（前探 + 下俯）
+                delta_hand = math_helpers.SE3Pose(
+                    x=0.30, y=0.0, z=-0.25,
+                    rot=math_helpers.Quat.from_pitch(30.0 * np.pi / 180.0)
+                )
+
+                # 目标位姿：根系 -> 目标 = (根系 -> 手) * (手 -> 目标)
+                root_T_target = root_T_hand * delta_hand
+                q = root_T_target.rot  # math_helpers.Quat
+
+                arm_cmd = RobotCommandBuilder.arm_pose_command(
+                    root_T_target.x, root_T_target.y, root_T_target.z,
+                    q.w, q.x, q.y, q.z,   # 注意顺序 qw, qx, qy, qz
+                    root_frame,           # ✅ 用机体系作为根
+                    1.2                   # seconds
+                )
+                self.cmd_client.robot_command(arm_cmd)
+                time.sleep(1.2)
+                print("[arm] 已在机体系锁定相对位姿（随机体移动/旋转保持不变）。")
+            except Exception as e:
+                print(f"[arm] 位姿微调失败（忽略继续）：{e}")
+
+
+            # 2) 相机请求：强制 JPEG 以便 OpenCV 解码更稳
+            req = [build_image_request(
+                source,
+                image_format=image_pb2.Image.FORMAT_JPEG,
+                quality_percent=int(jpeg_quality),
+            )]
+            cv2.namedWindow(window_title, cv2.WINDOW_NORMAL | cv2.WINDOW_GUI_EXPANDED)
+            cv2.resizeWindow(window_title, width, height)
+            period = 1.0 / max(1.0, fps)
+            running = True
+            while running:
+                t0 = time.time()
+                try:
+                    resp = self.img_client.get_image(req)[0]
+                    buf = np.frombuffer(resp.shot.image.data, dtype=np.uint8)
+                    frame = cv2.imdecode(buf, cv2.IMREAD_COLOR)
+                    frame = self._resize_for_display(frame, width, height, method="lanczos")
+                except Exception as e:
+                    frame = np.zeros((height, width, 3), dtype=np.uint8)
+                    cv2.putText(frame, f"Image error: {e}", (20, height//2),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                hud = f"{source}  (q/Esc to quit)"
+                cv2.putText(frame, hud, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
+                cv2.imshow(window_title, frame)
+                key = cv2.waitKey(1) & 0xFF
+                if key in (ord('q'), 27):
+                    running = False
+                dt = time.time() - t0
+                if dt < period:
+                    time.sleep(period - dt)
+            try:
+                cv2.destroyWindow(window_title)
+            except Exception:
+                pass
+
+    def move_spot(self, *, lin_speed: float = 0.6, ang_speed: float = 1.0, fps: float = 30.0) -> None:
+        """按住才动、松开即停：W/S 前后，A/D 左右转；方向键同效；Q 退出。"""
+        import time, curses
+        if not hasattr(self, "send_velocity"):
+            raise RuntimeError("未找到 self.send_velocity(vx, vy, vrot)。")
+
+        period = 1.0 / max(1.0, fps)
+
+        def _loop(stdscr):
+            stdscr.nodelay(True)       # 非阻塞
+            stdscr.keypad(True)        # 支持方向键常量
+            curses.noecho()
+            stdscr.addstr(0, 0, "按住移动：W/S 前后, A/D 左右转, 方向键同效；Q 退出")
+            stdscr.refresh()
+
+            while True:
+                t0 = time.time()
+
+                # 默认零速；只有检测到按键才赋值 -> 松开就停
+                vx, vrot = 0.0, 0.0
+
+                # 读取本帧“最后一个”按键（把缓冲清空，处理按住时的键盘重复）
+                ch = stdscr.getch()
+                last = ch
+                while ch != -1:
+                    last = ch
+                    ch = stdscr.getch()
+
+                if last != -1:
+                    if   last in (ord('w'), ord('W'), curses.KEY_UP):    vx, vrot = +lin_speed, 0.0
+                    elif last in (ord('s'), ord('S'), curses.KEY_DOWN):  vx, vrot = -lin_speed, 0.0
+                    elif last in (ord('a'), ord('A'), curses.KEY_LEFT):  vx, vrot = 0.0, +ang_speed
+                    elif last in (ord('d'), ord('D'), curses.KEY_RIGHT): vx, vrot = 0.0, -ang_speed
+                    elif last in (ord('q'), ord('Q')):                   raise KeyboardInterrupt
+
+                # 发送当前帧速度（BODY系）；松开=没键=零速
+                try:
+                    self.send_velocity(vx, 0.0, vrot)
+                except Exception:
+                    pass
+
+                # 可选 HUD（不需要可删）
+                stdscr.addstr(1, 0, f"vx={vx:+.2f} m/s   yaw_rate={vrot:+.2f} rad/s   ")
+                stdscr.clrtoeol()
+                stdscr.refresh()
+
+                dt = time.time() - t0
+                if dt < period:
+                    time.sleep(period - dt)
+
+        try:
+            curses.wrapper(_loop)
+        except KeyboardInterrupt:
+            pass
+        finally:
+            try:
+                self.send_velocity(0.0, 0.0, 0.0)  # 松手/退出确保停车
+            except Exception:
+                pass
+
+    def handcam_detect_bottle_stream(
+        self,
+        detector,                      # 需实现 detector.detect_first_bottle_xy(frame)->Optional[(x,y)]
+        *,
+        source: str = "hand_color_image",
+        interval: float = 1.0,
+        jpeg_quality: int = 70,
+        max_frames: Optional[int] = None,
+        timeout: Optional[float] = None,
+    ) -> Iterator[Optional[Tuple[int, int]]]:
+        import time
+        import cv2
+        import numpy as np
+        from bosdyn.api import image_pb2
+        from bosdyn.client.image import build_image_request
+
+        # 用已有 img_client；没有则从 robot ensure
+        img_client = getattr(self, "img_client", None)
+        if img_client is None:
+            if getattr(self, "robot", None) is None:
+                raise RuntimeError("SpotAgent 未登录/未持有 robot。")
+            from bosdyn.client.image import ImageClient
+            img_client = self.robot.ensure_client(ImageClient.default_service_name)
+            self.img_client = img_client
+
+        req = [build_image_request(
+            source,
+            image_format=image_pb2.Image.FORMAT_JPEG,
+            quality_percent=int(jpeg_quality),
+        )]
+
+        period = max(0.1, float(interval))
+        start = time.time()
+        n = 0
+
+        while True:
+            if timeout is not None and (time.time() - start) >= timeout:
+                return
+            if max_frames is not None and n >= max_frames:
+                return
+
+            t0 = time.time()
+            try:
+                # —— 首检 —— #
+                resp = img_client.get_image(req)[0]
+                buf = np.frombuffer(resp.shot.image.data, dtype=np.uint8)
+                frame = cv2.imdecode(buf, cv2.IMREAD_COLOR)  # BGR
+                xy_first = detector.detect_first_bottle_xy(frame)  # -> Optional[(x,y)]
+            except Exception as e:
+                print(f"[handcam] 获取/识别失败（首检）：{e}")
+                xy_first = None
+
+            if xy_first is not None:
+                # —— 等待 2 秒后再复检 —— #
+                time.sleep(2.0)
+                try:
+                    resp2 = img_client.get_image(req)[0]
+                    buf2 = np.frombuffer(resp2.shot.image.data, dtype=np.uint8)
+                    frame2 = cv2.imdecode(buf2, cv2.IMREAD_COLOR)
+                    xy_second = detector.detect_first_bottle_xy(frame2)  # -> Optional[(x,y)]
+                except Exception as e:
+                    print(f"[handcam] 获取/识别失败（复检）：{e}")
+                    xy_second = None
+
+                # 只输出复检结果
+                yield xy_second
+                n += 1
+
+                # 控节拍（以 period 为基准）
+                dt = time.time() - t0
+                if dt < period:
+                    time.sleep(period - dt)
+                continue  # 进入下一轮
+
+            # 未检出：按原逻辑输出 None
+            yield None
+            n += 1
+
+            dt = time.time() - t0
+            if dt < period:
+                time.sleep(period - dt)
+
+    def grasp_from_image_pixel(
+        self,
+        x: int,
+        y: int,
+        *,
+        image_source: str = "hand_color_image",
+        feedback_timeout_sec: float = 30.0,
+        feedback_interval_sec: float = 0.25,
+        carry_on_success: bool = True,
+        open_on_success: bool = False,
+        stow_on_finish: bool = False,
+    ) -> bool:
+        """
+        用 Manipulation API 基于像素点抓取；不添加任何 allowable_orientation 约束。
+        成功后可选 carry/open/stow。
+        """
+        import time
+        from bosdyn.api import geometry_pb2, manipulation_api_pb2
+        from bosdyn.client.image import ImageClient
+        from bosdyn.client.manipulation_api_client import ManipulationApiClient
+        from bosdyn.client.robot_command import (
+            RobotCommandBuilder, block_until_arm_arrives, RobotCommandClient
+        )
+
+        if getattr(self, "robot", None) is None:
+            raise RuntimeError("SpotAgent 未登录/未持有 robot。")
+
+        img_client: ImageClient = self.robot.ensure_client(ImageClient.default_service_name)
+        manip_client: ManipulationApiClient = self.robot.ensure_client(ManipulationApiClient.default_service_name)
+        cmd_client: RobotCommandClient = getattr(self, "cmd_client", None) or \
+            self.robot.ensure_client(RobotCommandClient.default_service_name)
+        self.cmd_client = cmd_client  # 记住
+
+        # 取一帧（携带相机元数据）
+        image = img_client.get_image_from_sources([image_source])[0]
+
+        # 相机模型：优先 pinhole，退化到 fisheye / color
+        cam_model = getattr(image.source, "pinhole", None)
+        if cam_model is None:
+            cam_model = getattr(image.source, "fisheye", None)
+        if cam_model is None:
+            # 兼容性兜底（极少见）
+            cam_model = image.source.pinhole  # 若无会抛异常
+
+        pick = manipulation_api_pb2.PickObjectInImage(
+            pixel_xy=geometry_pb2.Vec2(x=int(x), y=int(y)),
+            transforms_snapshot_for_camera=image.shot.transforms_snapshot,
+            frame_name_image_sensor=image.shot.frame_name_image_sensor,
+            camera_model=cam_model,
+        )
+        # 不设置 grasp_params.allowable_orientation（最简）
+
+        req = manipulation_api_pb2.ManipulationApiRequest(pick_object_in_image=pick)
+        rsp = manip_client.manipulation_api_command(manipulation_api_request=req)
+
+        # 轮询反馈
+        deadline = time.time() + float(feedback_timeout_sec)
+        succeeded = False
+        last_name = ""
+        while time.time() < deadline:
+            fb = manip_client.manipulation_api_feedback_command(
+                manipulation_api_pb2.ManipulationApiFeedbackRequest(
+                    manipulation_cmd_id=rsp.manipulation_cmd_id
+                )
+            )
+            state = fb.current_state
+            name = manipulation_api_pb2.ManipulationFeedbackState.Name(state)
+            if name != last_name:
+                print(f"[grasp] state: {name}")
+                last_name = name
+            if state == manipulation_api_pb2.MANIP_STATE_GRASP_SUCCEEDED:
+                succeeded = True
+                break
+            if state == manipulation_api_pb2.MANIP_STATE_GRASP_FAILED:
+                succeeded = False
+                break
+            time.sleep(float(feedback_interval_sec))
+
+        # 简单后处理
+        try:
+            if succeeded and carry_on_success:
+                cid = cmd_client.robot_command(RobotCommandBuilder.arm_carry_command())
+                block_until_arm_arrives(cmd_client, cid, timeout_sec=6.0)
+            if succeeded and open_on_success:
+                cmd_client.robot_command(RobotCommandBuilder.claw_gripper_open_fraction_command(1.0))
+                time.sleep(1.0)
+            if stow_on_finish:
+                sid = cmd_client.robot_command(RobotCommandBuilder.arm_stow_command())
+                block_until_arm_arrives(cmd_client, sid, timeout_sec=8.0)
+        except Exception as e:
+            print(f"[grasp] 后处理失败（忽略）：{e}")
+
+        return succeeded
+
+    def handcam_detect_and_grab_once(
+        self,
+        detector,
+        *,
+        source: str = "hand_color_image",
+        interval: float = 1.0,
+        jpeg_quality: int = 70,
+        timeout: float = 25.0,
+        carry_on_success: bool = True,
+        open_on_success: bool = False,
+        stow_on_finish: bool = False,
+        grab_fn: Optional[Callable[[int, int], bool]] = None,  # 可替换抓取实现
+    ) -> bool:
+        grab = grab_fn or (lambda x, y: self.grasp_from_image_pixel(
+            x, y,
+            image_source=source,
+            carry_on_success=carry_on_success,
+            open_on_success=open_on_success,
+            stow_on_finish=stow_on_finish,
+        ))
+
+        for xy in self.handcam_detect_bottle_stream(
+            detector,
+            source=source,
+            interval=interval,
+            jpeg_quality=jpeg_quality,
+            timeout=timeout,
+        ):
+            if xy is None:
+                continue
+            x, y = int(xy[0]), int(xy[1])
+            print(f"[bottle] 检测到瓶子像素: ({x}, {y}) → 开始抓取")
+            ok = grab(x, y)
+            print(f"[bottle] 抓取结果: {'SUCCESS' if ok else 'FAIL'}")
+            return ok
+
+        print("[bottle] 超时未检测到，结束")
+        return False
+
+
+
+
+
+
+
+

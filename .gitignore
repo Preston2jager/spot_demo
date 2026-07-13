@@ -1,0 +1,11 @@
+# 排除 YOLO 模型权重文件
+*.pt
+*openvino_model/
+
+# 排除 Python 虚拟环境和缓存
+.venv/
+__pycache/
+*.pyc
+
+# 排除本地环境变量
+.env
