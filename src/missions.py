@@ -1,20 +1,20 @@
-import time
 import functools
-import cv2
-import questionary
 import math
+import time
+
+import cv2
 import numpy as np
-from loguru import logger
-from bosdyn.client.robot_command import RobotCommandBuilder
-from bosdyn.client.frame_helpers import (
-    get_a_tform_b,
-    VISION_FRAME_NAME,
-    GRAV_ALIGNED_BODY_FRAME_NAME,
-    math_helpers,
-)
-from bosdyn.client.math_helpers import SE3Pose, Quat
-from bosdyn.client.image import build_image_request
+import questionary
 from bosdyn.api import image_pb2
+from bosdyn.client.frame_helpers import (
+    GRAV_ALIGNED_BODY_FRAME_NAME,
+    VISION_FRAME_NAME,
+    get_a_tform_b,
+)
+from bosdyn.client.image import build_image_request
+from bosdyn.client.math_helpers import Quat, SE3Pose
+from bosdyn.client.robot_command import RobotCommandBuilder
+from loguru import logger
 
 from .spot_agent import SpotAgent
 from .spot_detector_openvino import SpotDetector
@@ -345,10 +345,10 @@ def run_reset(agent: SpotAgent) -> None:
 @safety_fallback_decorator
 def run_stretch(agent: SpotAgent) -> None:
     logger.info("Stretch: Spot is loaded and standing. Performing a deep stretch...")
-    from bosdyn.geometry import EulerZXY
-    from bosdyn.client.math_helpers import SE3Pose
     from bosdyn.api import trajectory_pb2
     from bosdyn.api.spot import robot_command_pb2 as spot_command_pb2
+    from bosdyn.client.math_helpers import SE3Pose
+    from bosdyn.geometry import EulerZXY
 
     try:
         # Deep stretch: butt backward, head down, front legs extended as much as possible
@@ -383,8 +383,8 @@ def run_stretch(agent: SpotAgent) -> None:
 @safety_fallback_decorator
 def run_stepping_in_place(agent: SpotAgent) -> None:
     logger.info("Stepping: Spot is standing. Preparing to step in place...")
-    from bosdyn.client import frame_helpers, math_helpers
     from bosdyn.api.spot import robot_command_pb2 as spot_command_pb2
+    from bosdyn.client import frame_helpers, math_helpers
 
     try:
         # Get current body pose to construct relative stance targets
@@ -474,10 +474,10 @@ def run_stepping_in_place(agent: SpotAgent) -> None:
 def run_wasd_teleop(agent: SpotAgent) -> None:
     import cv2
     import numpy as np
-    from bosdyn.client.image import build_image_request
     from bosdyn.api import image_pb2
-    from bosdyn.client.math_helpers import Quat
     from bosdyn.client.frame_helpers import BODY_FRAME_NAME
+    from bosdyn.client.image import build_image_request
+    from bosdyn.client.math_helpers import Quat
 
     logger.info("WASD Teleop: Pointing arm straight ahead and opening gripper...")
 
@@ -644,7 +644,7 @@ def run_arm_height_view(agent: SpotAgent) -> None:
     try:
         state = agent.state_client.get_robot_state()
         transforms = state.kinematic_state.transforms_snapshot
-        from bosdyn.client.frame_helpers import ODOM_FRAME_NAME, BODY_FRAME_NAME
+        from bosdyn.client.frame_helpers import BODY_FRAME_NAME, ODOM_FRAME_NAME
         tform = get_a_tform_b(transforms, ODOM_FRAME_NAME, BODY_FRAME_NAME)
         body_height = tform.position.z
         logger.info(f"Current body height from ground: {body_height:.2f} m")

@@ -1,8 +1,10 @@
-import time
+import builtins
 import functools
 import sys
-import builtins
-from typing import Any, Callable
+import time
+from collections.abc import Callable
+from types import TracebackType
+from typing import Any, ClassVar, Self
 
 
 class SpotTracker:
@@ -16,7 +18,7 @@ class SpotTracker:
     END    = '\033[0m'
 
     _REAL_PRINT = builtins.print
-    _STACK: list["SpotTracker"] = []
+    _STACK: ClassVar[list["SpotTracker"]] = []
 
     def __init__(self, name: str, exit_on_fail: bool = False) -> None:
         """Store task name and whether an exception should propagate."""
@@ -45,7 +47,7 @@ class SpotTracker:
             else:
                 cls._REAL_PRINT(output, **kwargs)
 
-    def __enter__(self) -> "SpotTracker":
+    def __enter__(self) -> Self:
         """Push this tracker onto the stack and start the timer."""
         if self._STACK:
             for tracker in self._STACK:
@@ -56,7 +58,12 @@ class SpotTracker:
         self.start_time = time.time()
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool | None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> bool | None:
         """Pop from the stack, rewrite the status line, and restore print() if the stack is empty."""
         duration = time.time() - self.start_time
         if self._STACK:
@@ -88,15 +95,3 @@ class SpotTracker:
             with tracker:
                 return func(*args, **kwargs)
         return wrapper
-
-
-# Configure Loguru to route through standard print and use [[LEVEL]] format
-from loguru import logger
-
-logger.remove()
-logger.level("INFO", color="<yellow>")
-logger.add(
-    lambda msg: print(msg.rstrip('\n')),
-    format="<level><bold>[[{level}]]</bold></level> {message}",
-    colorize=True
-)

@@ -4,8 +4,15 @@
 
 # 排除 Python 虚拟环境和缓存
 .venv/
-__pycache/
+__pycache__/
 *.pyc
 
-# 排除本地环境变量
+# 排除本地环境变量与机器人凭据
 .env
+credentials.json
+
+# 排除编辑器会话文件
+.antigravitycli/
+
+# 排除运行日志（runtime/maps 的地图数据仍然入库）
+runtime/logs/

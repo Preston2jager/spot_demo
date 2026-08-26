@@ -4,19 +4,20 @@ Spot Robot Control — interactive entry point.
 Run: python start.py
 """
 import os
-import time
 import threading
+import time
 from pathlib import Path
 
+import questionary
 from dotenv import load_dotenv
 from loguru import logger
-from src.spot_tracker import SpotTracker
-import questionary
 from questionary import Choice, Separator
+
+from src import setup_logging
 
 load_dotenv(Path(__file__).parent / ".env")
 os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
-
+setup_logging()
 
 def _clear_screen() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -40,9 +41,10 @@ class BatteryMonitor:
             self.thread.join(timeout=1.0)
 
     def _run(self):
-        from src.config import load_robot_credentials
         import bosdyn.client
         from bosdyn.client.robot_state import RobotStateClient
+
+        from src.config import load_robot_credentials
 
         try:
             creds = load_robot_credentials()
@@ -51,6 +53,7 @@ class BatteryMonitor:
             robot.authenticate(creds["username"], creds["password"])
             state_client = robot.ensure_client(RobotStateClient.default_service_name)
         except Exception as e:
+            logger.debug(f"Battery monitor failed to connect: {e}")
             self.battery_status = "Error"
             return
 
@@ -65,16 +68,16 @@ class BatteryMonitor:
                     self.battery_status = f"{pct:.1f}% ({status_short})"
                 else:
                     self.battery_status = "No State"
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Battery state poll failed: {e}")
 
             # Output battery status based on current run state
             if not self.task_running:
                 # Menu state: Use ANSI escape code to render battery on the first line left (bold green), and clear the rest of that line
                 try:
                     print(f"\033[s\033[1;1H\033[1;32m[Spot Battery: {self.battery_status}]\033[0m\033[K\033[u", end="", flush=True)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Battery status render failed: {e}")
             else:
                 # Task running state: log battery every 30 seconds to prevent scrolling logs from cluttering output
                 now = time.time()
@@ -92,36 +95,36 @@ class BatteryMonitor:
 # ── 1. Basic Tasks ──────────────────────────────────────────────────
 
 def _initial_check_reset() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_reset
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=False, navigation=False) as agent:
         run_reset(agent)
 
 
 def _step_in_place() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_stepping_in_place
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=False, navigation=False) as agent:
         run_stepping_in_place(agent)
 
 
 def _stand_and_view() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_stand_and_view
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=False, navigation=False) as agent:
         run_stand_and_view(agent)
 
 
 def _arm_height_view() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_arm_height_view
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=True, navigation=False) as agent:
         run_arm_height_view(agent)
 
 
 def _sit_down_rest() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_sit_down_rest
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=False, navigation=False) as agent:
         run_sit_down_rest(agent)
 
@@ -129,8 +132,8 @@ def _sit_down_rest() -> None:
 # ── 2. Direct Control ──────────────────────────────────────────────
 
 def _wasd_teleop() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_wasd_teleop
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=False, navigation=False) as agent:
         run_wasd_teleop(agent)
 
@@ -138,23 +141,23 @@ def _wasd_teleop() -> None:
 # ── 3. GraphNav ──────────────────────────────────────────────────
 
 def _go_home() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_go_home
+    from src.spot_agent import SpotAgent
     waypoint = os.getenv("GO_HOME_WAYPOINT", "waypoint_0")
     with SpotAgent(stream=True, navigation=True) as agent:
         run_go_home(agent, waypoint)
 
 
 def _fetch_local_coord() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_guard_no_graphnav
+    from src.spot_agent import SpotAgent
     with SpotAgent(stream=True, navigation=False) as agent:
         run_guard_no_graphnav(agent)
 
 
 def _fetch_one_point() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_fetch_one_point
+    from src.spot_agent import SpotAgent
     target = os.getenv("FETCH_TARGET_POINT", "default")
     home = os.getenv("FETCH_HOME_POINT", "waypoint_32")
     with SpotAgent(stream=True, navigation=True) as agent:
@@ -162,8 +165,8 @@ def _fetch_one_point() -> None:
 
 
 def _fetch_one_point_loop() -> None:
-    from src.spot_agent import SpotAgent
     from src.missions import run_fetch_one_point_loop
+    from src.spot_agent import SpotAgent
     target = os.getenv("FETCH_TARGET_POINT", "default")
     home = os.getenv("FETCH_HOME_POINT", "waypoint_32")
     with SpotAgent(stream=True, navigation=True) as agent:
@@ -206,11 +209,11 @@ def main() -> None:
             # RMIT Red logo ASCII art with subtitle
             print("\033[1;31m" + """ ██████╗ ███╗   ███╗██╗████████╗
  ██╔══██╗████╗ ████║██║╚══██╔══╝
- ██████╔╝██╔████╔██║██║   ██║   
- ██╔══██╗██║╚██╔╝██║██║   ██║   
- ██║  ██║██║ ╚═╝ ██║██║   ██║   
- ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝   
- 
+ ██████╔╝██╔████╔██║██║   ██║
+ ██╔══██╗██║╚██╔╝██║██║   ██║
+ ██║  ██║██║ ╚═╝ ██║██║   ██║
+ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝
+
   Centre for Future Construction""" + "\033[0m\n")
             handler = questionary.select(
                 "Spot Robot Control — select operation:",

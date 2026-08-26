@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional
+
+from typing import ClassVar
 
 import cv2
 import numpy as np
@@ -8,9 +9,9 @@ from ultralytics import YOLO
 class SpotDetector:
     """YOLOv8 detector (PyTorch backend) targeting bottles and cans."""
 
-    my_target_class = ["plastic water bottle", "aluminum soda can"]
+    my_target_class: ClassVar[list[str]] = ["plastic water bottle", "aluminum soda can"]
 
-    def __init__(self, weights: str = "yolov8m_rmit.pt", device: Optional[str] = None) -> None:
+    def __init__(self, weights: str = "yolov8m_rmit.pt", device: str | None = None) -> None:
         """Load YOLO model from weights path and resolve target class IDs."""
         self.model = YOLO(weights)
         self.device = device
@@ -31,17 +32,17 @@ class SpotDetector:
 
     def detect_targets_in_batch(
         self,
-        images_dict: Dict[str, np.ndarray],
+        images_dict: dict[str, np.ndarray],
         conf: float = 0.05,
         iou: float = 0.45,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Run YOLO on a dict of named BGR images; return target detections sorted by confidence."""
         print("\n" + "=" * 5 + " Results " + "=" * 5)
-        results_list: List[Dict] = []
+        results_list: list[dict] = []
         if not images_dict:
             return results_list
-        cam_names: List[str] = []
-        color_images: List[np.ndarray] = []
+        cam_names: list[str] = []
+        color_images: list[np.ndarray] = []
         for cam_name, image in images_dict.items():
             cam_names.append(cam_name)
             color_images.append(self._to_bgr(image))
@@ -80,7 +81,7 @@ class SpotDetector:
         image: np.ndarray,
         conf: float = 0.05,
         iou: float = 0.45,
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Run YOLO on a single image and return the best target detection or None."""
         image = self._to_bgr(image)
         results = self.model(source=image, conf=conf, iou=iou, classes=None, verbose=False)

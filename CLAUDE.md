@@ -36,10 +36,13 @@ Intel Ultra 125h benchmarks: CPU 200 ms/f, NPU 62 ms/f, GPU 28 ms/f.
 
 ## Map Workflow
 
-1. Record a map with `Maps/recording_command_line.py` (fiducial must be in view at start).
-2. Download the map locally.
-3. Inspect waypoints with `Maps/check_map.py`.
-4. Use waypoint names in navigation scripts.
+1. Record a map with `src/ref/recording_command_line.py` (fiducial must be in view at start).
+2. Download the map locally into `runtime/maps/<map_name>/`.
+3. Inspect waypoints with `src/ref/check_map.py`.
+4. Point `SPOT_MAP_DIR` at the map directory (default `./runtime/maps/amp_3`) and use waypoint names in navigation scripts.
+
+The Boston Dynamics CLI tools in `src/ref/` are unmodified vendor copies; run them from inside that
+directory so their `import graph_nav_util` resolves.
 
 ## Architecture
 
@@ -55,6 +58,7 @@ Intel Ultra 125h benchmarks: CPU 200 ms/f, NPU 62 ms/f, GPU 28 ms/f.
 | `janitor.py` | `Janitor` | Static I/O utilities: graph proto loading, temp audio, credentials |
 | `mcp_server.py` | — | FastMCP SSE server exposing `navigate_to_waypoint` |
 | `config.py` | — | `load_robot_credentials()` reads `credentials.json` |
+| `log_config.py` | — | `setup_logging()` installs the loguru console + dated-file sinks |
 
 ### Key patterns
 
@@ -63,6 +67,10 @@ Intel Ultra 125h benchmarks: CPU 200 ms/f, NPU 62 ms/f, GPU 28 ms/f.
 **Janitor** centralises all disk I/O:
 - `Janitor.load_graph(save_dir)` / `load_waypoint_snapshots` / `load_edge_snapshots` — used by `SpotAgent.upload_graph_and_snapshots`
 - `Janitor.load_credentials(path)` — used by `config.py`
+
+**Logging** is configured in `src/log_config.py` and installed by `src/__init__.py`, so importing anything from
+`src` sets it up. `start.py` also calls `setup_logging()` explicitly (it is idempotent) — never rely on a bare
+side-effect import for this, a linter will delete it.
 
 **Two detector variants** share the same interface; swap the import to switch backends.
 
@@ -75,6 +83,16 @@ Intel Ultra 125h benchmarks: CPU 200 ms/f, NPU 62 ms/f, GPU 28 ms/f.
 python run_mcp.py
 ```
 
-**Maps/** — pre-recorded GraphNav graph files (`amp_3`, `lv12_office`) and Boston Dynamics CLI tools.
+**runtime/** — runtime data, not code. `runtime/maps/` holds GraphNav graph folders (`amp_3`); `runtime/logs/`
+gets one `YYYY-MM-DD.log` per day (git-ignored), written by the loguru file sink in `src/log_config.py`.
 
-**Archive/** — deprecated experiments; do not rely on code there.
+**src/ref/** — verbatim copies of the Boston Dynamics GraphNav CLI examples (`recording_command_line.py`,
+`graph_nav_command_line.py`, `graph_nav_util.py`, `check_map.py`). Reference only — nothing in `src/` imports them.
+
+**Archive/** — deprecated experiments plus the retired `Maps/` folder and the `spot-sdk` checkout; do not rely
+on code there.
+
+## Linting
+
+Ruff is configured in `pyproject.toml`. `Archive/`, `src/ref/`, and `runtime/` are excluded — never "fix" code
+there. `ruff check .` must stay clean.

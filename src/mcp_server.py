@@ -3,7 +3,6 @@ Spot Robot MCP server.
 
 Exposed via start.py. Functions can also be imported directly.
 """
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv

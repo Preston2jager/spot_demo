@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional
+
+from typing import ClassVar
 
 import cv2
 import numpy as np
@@ -8,7 +9,7 @@ from ultralytics import YOLO
 class SpotDetector:
     """YOLOv8 detector using the OpenVINO backend for Intel CPU/GPU/NPU inference."""
 
-    my_target_class = ["bottle"]
+    my_target_class: ClassVar[list[str]] = ["bottle"]
 
     def __init__(
         self,
@@ -32,17 +33,17 @@ class SpotDetector:
 
     def detect_targets_in_batch(
         self,
-        images_dict: Dict[str, np.ndarray],
+        images_dict: dict[str, np.ndarray],
         conf: float = 0.05,
         iou: float = 0.45,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Run OpenVINO inference on a dict of named BGR images; return detections sorted by confidence."""
         print("\n" + "=" * 5 + " OpenVINO Results " + "=" * 5)
-        results_list: List[Dict] = []
+        results_list: list[dict] = []
         if not images_dict:
             return results_list
-        cam_names: List[str] = []
-        color_images: List[np.ndarray] = []
+        cam_names: list[str] = []
+        color_images: list[np.ndarray] = []
         for cam_name, image in images_dict.items():
             cam_names.append(cam_name)
             color_images.append(self._to_bgr(image))

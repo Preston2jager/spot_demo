@@ -3,9 +3,9 @@ import time
 
 import cv2
 import numpy as np
-from flask import Flask, Response, render_template_string
 from bosdyn.api import image_pb2
 from bosdyn.client.image import build_image_request
+from flask import Flask, Response, render_template_string
 
 from .spot_tracker import SpotTracker
 
@@ -161,6 +161,7 @@ class SpotStreamer:
     def _run_web_server(self) -> None:
         """Start the Flask development server on the configured host and port."""
         import logging
+
         import flask.cli
         log = logging.getLogger("werkzeug")
         log.setLevel(logging.ERROR)

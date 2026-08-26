@@ -1,22 +1,19 @@
 import math
 import os
 import time
-from typing import Optional
+from typing import Self
 
+import bosdyn.client
 import cv2
 import numpy as np
-import bosdyn.client
-from loguru import logger
 from bosdyn.api import geometry_pb2, manipulation_api_pb2
-from bosdyn.api.graph_nav import graph_nav_pb2, map_pb2, nav_pb2
+from bosdyn.api.graph_nav import graph_nav_pb2, nav_pb2
 from bosdyn.client.frame_helpers import (
     BODY_FRAME_NAME,
     GRAV_ALIGNED_BODY_FRAME_NAME,
-    HAND_FRAME_NAME,
     ODOM_FRAME_NAME,
     VISION_FRAME_NAME,
     get_a_tform_b,
-    get_se2_a_tform_b,
     math_helpers,
 )
 from bosdyn.client.graph_nav import GraphNavClient
@@ -27,10 +24,11 @@ from bosdyn.client.recording import GraphNavRecordingServiceClient
 from bosdyn.client.robot_command import (
     RobotCommandBuilder,
     RobotCommandClient,
-    blocking_stand,
     blocking_sit,
+    blocking_stand,
 )
 from bosdyn.client.robot_state import RobotStateClient
+from loguru import logger
 
 from .config import load_robot_credentials
 from .janitor import Janitor
@@ -63,19 +61,19 @@ class SpotAgent:
         self.client_name = client_name
         self.keep_alive_period_sec = keep_alive_period_sec
         self.force_lease = force_lease
-        self.sdk: Optional[bosdyn.client.Sdk] = None
-        self.robot: Optional[bosdyn.client.Robot] = None
-        self.lease_client: Optional[LeaseClient] = None
-        self.cmd_client: Optional[RobotCommandClient] = None
-        self.img_client: Optional[ImageClient] = None
-        self.state_client: Optional[RobotStateClient] = None
-        self.graph_nav_client: Optional[GraphNavClient] = None
-        self.recording_client: Optional[GraphNavRecordingServiceClient] = None
-        self.manip_client: Optional[ManipulationApiClient] = None
-        self._lease_keepalive: Optional[LeaseKeepAlive] = None
+        self.sdk: bosdyn.client.Sdk | None = None
+        self.robot: bosdyn.client.Robot | None = None
+        self.lease_client: LeaseClient | None = None
+        self.cmd_client: RobotCommandClient | None = None
+        self.img_client: ImageClient | None = None
+        self.state_client: RobotStateClient | None = None
+        self.graph_nav_client: GraphNavClient | None = None
+        self.recording_client: GraphNavRecordingServiceClient | None = None
+        self.manip_client: ManipulationApiClient | None = None
+        self._lease_keepalive: LeaseKeepAlive | None = None
 
     @SpotTracker("Spot agent services startup", exit_on_fail=True)
-    def __enter__(self) -> "SpotAgent":
+    def __enter__(self) -> Self:
         """Authenticate, acquire lease, power on, stand, and optionally start streaming/navigation."""
         self._auto_login(self.username, self.password)
         self._get_lease(force=self.force_lease)
@@ -90,7 +88,7 @@ class SpotAgent:
             if self.navigation_state:
                 self.graph = self.get_current_graph()
                 if not self.graph:
-                    map_dir = os.getenv("SPOT_MAP_DIR", "./Maps/amp_3")
+                    map_dir = os.getenv("SPOT_MAP_DIR", "./runtime/maps/amp_3")
                     self.graph = self.upload_graph_and_snapshots(map_dir)
                 if not self.graph:
                     logger.warning("No graph available. Check connection and graph path.")
@@ -275,7 +273,7 @@ class SpotAgent:
     # ── Public: vision & manipulation ─────────────────────────────────────────
 
     @SpotTracker("Scanning", exit_on_fail=False)
-    def find_target_yolo(self, yolo_detector: object) -> Optional[dict]:
+    def find_target_yolo(self, yolo_detector: object) -> dict | None:
         """Capture the hand camera and return the highest-confidence YOLO target detection."""
         try:
             image_responses = self.img_client.get_image(  # type: ignore[union-attr]
@@ -300,7 +298,7 @@ class SpotAgent:
         return None
 
     @SpotTracker("Quick scanning", exit_on_fail=False)
-    def quick_detect(self, yolo_detector: object) -> Optional[dict]:
+    def quick_detect(self, yolo_detector: object) -> dict | None:
         """Scan all six cameras, show OpenCV overlay of the top hit, and wait for keypress."""
         camera_sources = [
             "frontleft_fisheye_image",
@@ -345,7 +343,7 @@ class SpotAgent:
         return None
 
     @SpotTracker("Scanning", exit_on_fail=False)
-    def find_target(self, yolo_detector: object) -> Optional[tuple]:
+    def find_target(self, yolo_detector: object) -> tuple | None:
         """Capture hand camera and return (image_response, cam, cx, cy, class) for the top hit."""
         try:
             image_responses = self.img_client.get_image(  # type: ignore[union-attr]
@@ -481,7 +479,7 @@ class SpotAgent:
     # ── Public: navigation ────────────────────────────────────────────────────
 
     @SpotTracker("Navigation initialisation", exit_on_fail=False)
-    def initialize_graphnav_to_fiducial(self, fiducial_id: Optional[int] = None) -> bool:
+    def initialize_graphnav_to_fiducial(self, fiducial_id: int | None = None) -> bool:
         """Localise the robot to the nearest (or specified) fiducial on the loaded graph."""
         logger.info("Determining initial GraphNav position...")
         try:
@@ -537,7 +535,7 @@ class SpotAgent:
             return False
 
     @SpotTracker("Loading graph", exit_on_fail=False)
-    def get_current_graph(self) -> Optional[object]:
+    def get_current_graph(self) -> object | None:
         """Download the current graph from robot memory; return None if the graph is empty."""
         logger.info("Reading graph from robot memory...")
         try:
@@ -551,7 +549,7 @@ class SpotAgent:
             logger.error(f"Error loading graph: {e}")
             return None
 
-    def get_waypoint_id_by_name(self, graph: object, target_name: str) -> Optional[str]:
+    def get_waypoint_id_by_name(self, graph: object, target_name: str) -> str | None:
         """Look up a full waypoint ID from its human-readable annotation name."""
         available = []
         for wp in graph.waypoints:  # type: ignore[union-attr]
@@ -564,7 +562,7 @@ class SpotAgent:
         return None
 
     @SpotTracker("Uploading graph and snapshots", exit_on_fail=False)
-    def upload_graph_and_snapshots(self, save_dir: str) -> Optional[object]:
+    def upload_graph_and_snapshots(self, save_dir: str) -> object | None:
         """Load graph and all snapshot files from disk via Janitor and upload them to the robot."""
         logger.info(f"Uploading '{save_dir}' to Spot...")
         self.graph_nav_client.clear_graph()  # type: ignore[union-attr]

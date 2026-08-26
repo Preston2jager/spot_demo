@@ -5,6 +5,7 @@ Usage:
     python run_mcp.py
 """
 import os
+
 from src.mcp_server import run_mcp
 
 if __name__ == "__main__":

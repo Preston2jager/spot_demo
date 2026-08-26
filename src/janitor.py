@@ -1,9 +1,9 @@
 import json
 import os
 import tempfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from bosdyn.api.graph_nav import map_pb2
 from loguru import logger

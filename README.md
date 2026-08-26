@@ -1,8 +1,8 @@
 # Steps
-1. Run the ```graph_nav_command_line.py``` in Maps to recording a map.
+1. Run the ```graph_nav_command_line.py``` in `src/ref` to recording a map.
 2. Make sure to have a fiducial in view when start the recording.
-3. Download the map to local.
-4. Use ```check_map.py``` in Maps to get the waypoint by order.
+3. Download the map to local, then put it under `runtime/maps/`.
+4. Use ```check_map.py``` in `src/ref` to get the waypoint by order.
 5. Use the waypoint to for navigation programming.
 
 # Yolo model 
