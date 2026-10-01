@@ -1,838 +1,366 @@
+"""Mission handlers. Each takes a `SpotAgent` and does one job; the console decides when.
+
+Two rules hold for all of them.
+
+**Stopping freezes, it never sits.** The operator's Stop latches the agent (`halt()`): the
+robot holds where it is and the mission's next command raises `MissionStopped`, which
+unwinds it. The safety fallback below is the same idea for errors — hold position, report,
+return — rather than stowing, sitting or powering off, any of which is a movement nobody
+asked for at the moment something has already gone wrong.
+
+**Missions do not pick their own inputs.** Waypoints come from the map and the sorting
+missions take a `choose` callback, so the same loop runs with an operator confirming each
+object in the browser or with the most confident object taken automatically.
+"""
 import functools
 import math
+import os
 import time
+from dataclasses import dataclass
 
-import cv2
-import numpy as np
-import questionary
-from bosdyn.api import image_pb2
-from bosdyn.client.frame_helpers import (
-    GRAV_ALIGNED_BODY_FRAME_NAME,
-    VISION_FRAME_NAME,
-    get_a_tform_b,
-)
-from bosdyn.client.image import build_image_request
-from bosdyn.client.math_helpers import Quat, SE3Pose
-from bosdyn.client.robot_command import RobotCommandBuilder
 from loguru import logger
 
-from .spot_agent import SpotAgent
-from .spot_detector_openvino import SpotDetector
+from .spot_agent import MissionStopped, SpotAgent
+from .spot_grasp import GraspPlanner
+from .tracker import Track, distance_to
+from .vision import GROUPS, CoreIOUnavailable, Scene, SceneObject, Vision, bearing_and_distance, survey_sources
 
 
-def safety_fallback_decorator(func):
+def safety_fallback(func):
+    """Hold position and report on any error; let a Stop through untouched.
+
+    Returns False on an error so the console reports "did not complete" rather than success.
+    """
     @functools.wraps(func)
     def wrapper(agent: SpotAgent, *args, **kwargs):
         try:
             return func(agent, *args, **kwargs)
         except KeyboardInterrupt:
-            # Let KeyboardInterrupt propagate directly
             raise
         except Exception as e:
-            logger.error(f"Safety Fallback: Error encountered: {e}")
-            try:
-                # 1. Close gripper and stow arm
-                logger.info("Safety Fallback: Retracting arm to stow...")
-                agent._arm_in()
-                time.sleep(1.0)
-                # 2. Return to nominal stand
-                logger.info("Safety Fallback: Resetting robot to nominal stand...")
-                cmd = RobotCommandBuilder.synchro_stand_command()
-                agent.cmd_client.robot_command(cmd)
-                time.sleep(1.5)
-            except Exception as inner_err:
-                logger.error(f"Safety Fallback: Failed to retract arm/stand: {inner_err}")
-            
-            # Ask the user if they want to stop/exit
-            try:
-                confirm = questionary.confirm("An error occurred. Do you want to stop/exit?").ask()
-                if confirm:
-                    logger.info("Safety Fallback: Sitting down...")
-                    agent.sit()
-                    logger.info("Safety Fallback: Powering off...")
-                    agent.power_off()
-            except Exception as confirm_err:
-                logger.error(f"Safety Fallback: Failed during confirmation or sit: {confirm_err}")
+            logger.exception(f"Safety fallback: {type(e).__name__}: {e} — holding position")
+            agent.hold_position()
+            return False
     return wrapper
 
 
-@safety_fallback_decorator
-def run_go_home(agent: SpotAgent, waypoint_name: str) -> None:
+# ── basics ────────────────────────────────────────────────────────────────────
+
+
+@safety_fallback
+def run_initialisation(agent: SpotAgent) -> None:
+    """The full reset, after the stand and announcement: report the battery, sit, power off."""
+    battery = agent.battery()
+    if battery:
+        runtime = battery.get("runtime_sec", 0)
+        logger.info(f"Battery {battery['percentage']}% ({battery['status']}), about {runtime // 60} min left")
+    else:
+        logger.warning("No battery state reported.")
+    time.sleep(2.0)
+    agent.arm_in()
+    agent.sit()
+    agent.power_off()
+
+
+@safety_fallback
+def run_sit_down(agent: SpotAgent) -> None:
+    agent.arm_in()
+    time.sleep(1.5)
+    agent.sit()
+    agent.power_off()
+
+
+@safety_fallback
+def run_go_to(agent: SpotAgent, waypoint_name: str) -> bool:
+    """Walk to one named waypoint. Returns whether Spot arrived."""
     wp_id = agent.get_waypoint_id_by_name(agent.graph, waypoint_name)
     if not wp_id:
-        logger.error(f"Waypoint not found: {waypoint_name}")
-        return
-    agent.navigate_to_waypoint(wp_id)
+        logger.error(f"No waypoint named '{waypoint_name}' in the robot's map")
+        return False
+    return bool(agent.navigate_to_waypoint(wp_id))
 
 
-@safety_fallback_decorator
-def run_guard_loop(agent: SpotAgent, guard_point: str, home_point: str) -> None:
-    detector = SpotDetector()
-    guard_id = agent.get_waypoint_id_by_name(agent.graph, guard_point)
-    home_id = agent.get_waypoint_id_by_name(agent.graph, home_point)
-    if not guard_id or not home_id:
-        logger.error("Required waypoints not found — aborting mission.")
-        return
-    logger.info("Starting guard loop. Ctrl+C to stop.")
-    try:
-        while True:
-            logger.info(f"[Phase 1] Navigating to guard point: {guard_point}")
-            if not agent.navigate_to_waypoint(guard_id):
-                logger.warning("Failed to reach guard point. Retrying in 3 s...")
+@safety_fallback
+def run_patrol_loop(agent: SpotAgent, route: list[str], pause_sec: float = 1.0) -> bool:
+    """Walk a route of waypoints in order, lap after lap, until the operator stops it.
+
+    Names are resolved up front, so a typo stops the mission before Spot moves. A leg that
+    cannot be walked is logged and skipped: the next leg routes from wherever Spot got to.
+    """
+    if len(route) < 2:
+        logger.error("A patrol needs at least two waypoints — aborting mission.")
+        return False
+    legs = []
+    for name in route:
+        wp_id = agent.get_waypoint_id_by_name(agent.graph, name)
+        if not wp_id:
+            logger.error(f"Waypoint not found: {name} — aborting patrol.")
+            return False
+        legs.append((name, wp_id))
+    logger.info(f"Patrol: {' → '.join(name for name, _ in legs)}. Stop to end.")
+    lap = 0
+    while True:
+        lap += 1
+        for name, wp_id in legs:
+            logger.info(f"[Lap {lap}] heading for {name}")
+            if not agent.navigate_to_waypoint(wp_id):
+                logger.warning(f"[Lap {lap}] could not reach {name} — carrying on to the next point")
+            time.sleep(pause_sec)
+
+
+# ── the sorting demo ──────────────────────────────────────────────────────────
+
+
+@dataclass
+class SortPoints:
+    """The four waypoints the sorting demo runs between."""
+
+    pick: str
+    bins: dict[str, str]  # group -> waypoint name
+
+    def missing(self) -> list[str]:
+        needed = ["pick"] + [f"bin_{group}" for group in GROUPS]
+        have = {"pick": self.pick, **{f"bin_{g}": self.bins.get(g, "") for g in GROUPS}}
+        return [name for name in needed if not have[name]]
+
+
+# How many scans a survey takes before choosing. An object has to turn up in TRACK_MIN_SCANS
+# of them (or of the preview's scans just before) to be registered and offered.
+SURVEY_SCANS = int(os.getenv("SURVEY_SCANS", "3"))
+
+
+# With surround vision off, what counts as "in front": within this many degrees either side
+# of straight ahead — roughly what the front pair and the hand see between them.
+FRONT_HALF_ANGLE = math.radians(float(os.getenv("VISION_FRONT_HALF_DEG", "60")))
+
+
+@dataclass
+class Survey:
+    """A few scans from where Spot stands, and the registered objects they confirmed."""
+
+    scene: Scene  # the last scan of the body cameras — what the operator is shown first
+    tracks: list[Track]  # registered objects seen during the survey, best first (at most 10)
+    started: float
+    hand: Scene | None = None  # the hand camera's part of that scan
+
+
+@dataclass
+class Choice:
+    """What to pick up and which bin it goes in. ``group`` may overrule the classifier.
+
+    ``track`` is the registered object; ``obj`` and ``scene`` are its most recent sighting,
+    which the grasp starts from, aimed at the track's fused position.
+    """
+
+    track: Track
+    group: str
+
+    @property
+    def obj(self) -> SceneObject:
+        return self.track.latest[1]  # type: ignore[index]
+
+    @property
+    def scene(self) -> Scene:
+        return self.track.latest[0]  # type: ignore[index]
+
+
+class SortHooks:
+    """How a grasping mission talks to whoever is running it. The defaults do nothing."""
+
+    def phase(self, text: str) -> None:
+        """A short description of what the robot is doing now."""
+
+    def choose(self, survey: Survey) -> Choice | None:
+        """Pick a registered object from a survey, or None to survey again."""
+        raise NotImplementedError
+
+    def surround(self) -> bool:
+        """Survey with every body camera (True) or only the front pair (False). Both add the hand."""
+        return True
+
+
+class AutoChoice(SortHooks):
+    """The automatic mode: the best registered object, in the bin it was classified into."""
+
+    def choose(self, survey: Survey) -> Choice | None:
+        if not survey.tracks:
+            return None
+        best = survey.tracks[0]
+        if best.uncertain:
+            logger.warning(f"Best registered object is uncertain — taking it anyway: {best.summary()}")
+        return Choice(best, best.group)
+
+
+def survey(agent: SpotAgent, vision: Vision, keep=None, scans: int = SURVEY_SCANS,
+           surround: bool = True) -> Survey | None:
+    """Scan ``scans`` times and return what got registered.
+
+    The arm is put out in front with the gripper open first, so the hand camera looks along
+    with the body cameras — every body camera with ``surround``, else the front pair, whose
+    registered objects are then only those ahead of the robot (`FRONT_HALF_ANGLE`), not ones
+    an earlier all-round look left behind. ``keep`` filters further (grasp-here keeps only
+    what is within reach). None if no scan came back at all.
+    """
+    agent.arm_ready()
+    started = time.time()
+    views: dict[str, Scene] = {}
+    for _ in range(max(1, scans)):
+        agent.check_halt()
+        views.update(vision.scan_views(agent, survey_sources(surround), depth=True))
+    scene = views.get("cameras") or views.get("hand")
+    if scene is None:
+        return None
+    tracks = vision.tracker.candidates(since=started)  # type: ignore[union-attr]
+    if not surround:
+        tracks = [t for t in tracks if abs(bearing_and_distance(agent, t.position)[0]) <= FRONT_HALF_ANGLE]
+    if keep is not None:
+        tracks = [t for t in tracks if keep(t)]
+    return Survey(scene, tracks, started, hand=views.get("hand"))
+
+
+def _picked(vision: Vision, choice: Choice) -> None:
+    """The object has left where it was registered: stop offering it."""
+    vision.tracker.forget(choice.track.id)  # type: ignore[union-attr]
+
+
+@safety_fallback
+def run_sort_loop(agent: SpotAgent, vision: Vision, points: SortPoints, hooks: SortHooks,
+                  rescan_sec: float = 3.0) -> bool:
+    """Pick objects at the pick point and sort them into three bins, until stopped.
+
+    Each cycle: at the pick point, survey with the body cameras and the hand (several
+    scans, objects registered in space); ask `hooks.choose` which registered object to take (the
+    operator's click, or the best one); approach, line up and grasp it (`GraspPlanner`,
+    aimed at the fused position); walk to its group's bin and drop it in; walk back.
+    """
+    missing = points.missing()
+    if missing:
+        logger.error(f"Sorting needs every point chosen on the map — missing {', '.join(missing)}")
+        return False
+    pick_id = agent.get_waypoint_id_by_name(agent.graph, points.pick)
+    bin_ids = {group: agent.get_waypoint_id_by_name(agent.graph, name) for group, name in points.bins.items()}
+    if not pick_id or not all(bin_ids.values()):
+        logger.error("A sorting waypoint is not in the robot's map — aborting before moving.")
+        return False
+
+    planner = GraspPlanner(agent, vision, phase=hooks.phase)
+    at_pick = False
+    cycle = 0
+    while True:
+        agent.check_halt()
+        if not at_pick:
+            hooks.phase("walking to the pick point")
+            if not agent.navigate_to_waypoint(pick_id):
+                logger.warning("Could not reach the pick point — retrying in 3 s")
                 time.sleep(3.0)
                 continue
-            logger.info("At guard point — searching for target...")
-            target_grasped = False
-            while not target_grasped:
-                agent._arm_out()
-                time.sleep(2.0)
-                detected = agent.find_target(detector)
-                if detected is None:
-                    logger.info("No target found. Rescanning in 3 s...")
-                    time.sleep(3.0)
-                    continue
-                target_img_resp, cam_name, cx, cy, cls_name = detected
-                if agent.grasp_object(target_img_resp, cam_name, cx, cy, cls_name):
-                    logger.info("Target grasped.")
-                    target_grasped = True
-                    time.sleep(0.2)
-                else:
-                    logger.warning("Grasp failed — returning to guard point...")
-                    agent.navigate_to_waypoint(guard_id)
-                    time.sleep(2.0)
-            logger.info(f"[Phase 2] Returning home: {home_point}")
-            if agent.navigate_to_waypoint(home_id):
-                logger.info("At home — releasing target.")
-                time.sleep(0.2)
-                agent._arm_release(bin=True)
-            else:
-                logger.error("Failed to reach home — stopping mission.")
-                break
-            logger.info("Cycle complete. Starting next cycle...")
-            time.sleep(2.0)
-    except KeyboardInterrupt:
-        logger.info("Guard loop interrupted by user.")
+            at_pick = True
 
-
-@safety_fallback_decorator
-def run_guard_first(
-    agent: SpotAgent,
-    guard_point: str,
-    home_point: str,
-    initial_route: list[str],
-    standby_point: str,
-) -> None:
-    detector = SpotDetector()
-    guard_id = agent.get_waypoint_id_by_name(agent.graph, guard_point)
-    home_id = agent.get_waypoint_id_by_name(agent.graph, home_point)
-    standby_id = agent.get_waypoint_id_by_name(agent.graph, standby_point)
-    route_ids = [agent.get_waypoint_id_by_name(agent.graph, wp) for wp in initial_route]
-    if not all([guard_id, home_id, standby_id] + route_ids):
-        logger.error("Required waypoints not found — aborting mission.")
-        return
-    logger.info("Running initial patrol route...")
-    for i, wp_id in enumerate(route_ids):
-        agent.navigate_to_waypoint(wp_id)
-        if i == 1:
-            time.sleep(5)
-    logger.info(f"Navigating to guard point: {guard_point}")
-    while not agent.navigate_to_waypoint(guard_id):
-        logger.warning("Failed to reach guard point. Retrying in 3 s...")
-        time.sleep(3.0)
-    logger.info("At guard point — searching for target...")
-    target_grasped = False
-    while not target_grasped:
-        agent._arm_out()
-        time.sleep(2.0)
-        detected = agent.find_target(detector)
-        if detected is None:
-            logger.info("No object detected. Waiting 3 s...")
-            time.sleep(3.0)
+        hooks.phase("surveying")
+        try:
+            found = survey(agent, vision, surround=hooks.surround())
+        except CoreIOUnavailable as exc:
+            logger.error(f"Vision service unavailable ({exc}) — retrying in {rescan_sec:.0f} s")
+            time.sleep(rescan_sec)
             continue
-        target_img_resp, cam_name, cx, cy, cls_name = detected
-        if agent.grasp_object(target_img_resp, cam_name, cx, cy, cls_name):
-            logger.info("Target grasped.")
-            target_grasped = True
-            time.sleep(0.2)
-        else:
-            logger.warning("Grasp failed — returning to guard point...")
-            agent.navigate_to_waypoint(guard_id)
-            time.sleep(2.0)
-    logger.info(f"Returning home: {home_point}")
-    if agent.navigate_to_waypoint(home_id):
-        logger.info("At home — releasing target.")
-        time.sleep(0.2)
-        agent._arm_release(bin=True)
-        time.sleep(1.2)
-        logger.info(f"Moving to standby: {standby_point}")
-        agent.navigate_to_waypoint(standby_id)
-        logger.info("Mission complete.")
-    else:
-        logger.error("Failed to reach home — check manually.")
-
-
-@safety_fallback_decorator
-def run_guard_no_graphnav(agent: SpotAgent) -> None:
-    detector = SpotDetector()
-    
-    # 1. 启动时记录起始位置
-    start_x, start_y, start_yaw = agent.get_current_pose("vision")
-    agent.start_x = start_x
-    agent.start_y = start_y
-    agent.start_yaw = start_yaw
-    logger.info(f"Recorded starting position: X={start_x:.2f}, Y={start_y:.2f}, Yaw={math.degrees(start_yaw):.1f}°")
-
-    # 2. 伸臂，寻找面前的瓶子 (尝试 5 次)
-    logger.info("Looking for a bottle in front...")
-    detected = None
-    for attempt in range(5):
-        agent._arm_out()
-        time.sleep(2.0)
-        detected = agent.find_target(detector)
-        if detected is not None:
-            break
-        logger.info(f"Attempt {attempt + 1}: No bottle detected. Retrying in 2 s...")
-        time.sleep(2.0)
-
-    if detected is None:
-        logger.error("No bottle detected in front. Aborting mission.")
-        agent._arm_in()
-        return
-
-    target_img_resp, cam_name, cx, cy, cls_name = detected
-    logger.info(f"Detected target: {cls_name} at pixel ({cx}, {cy}) using camera {cam_name}")
-
-    # 3. 走近瓶子
-    source = target_img_resp.source
-    cam_model = getattr(source, "pinhole", None) or getattr(source, "fisheye", None) or source.pinhole
-    intrinsics = cam_model.intrinsics
-    
-    fx, fy = intrinsics.focal_length.x, intrinsics.focal_length.y
-    cx_cam, cy_cam = intrinsics.principal_point.x, intrinsics.principal_point.y
-    
-    x_cam = (cx - cx_cam) / fx
-    y_cam = (cy - cy_cam) / fy
-    z_cam = 1.0 
-    length = math.sqrt(x_cam**2 + y_cam**2 + z_cam**2)
-    
-    assumed_dist = 0.8  
-    target_cam = SE3Pose(
-        x=(x_cam/length)*assumed_dist, 
-        y=(y_cam/length)*assumed_dist, 
-        z=(z_cam/length)*assumed_dist, 
-        rot=Quat()
-    )
-                         
-    root_frame = VISION_FRAME_NAME
-    cam_frame = target_img_resp.shot.frame_name_image_sensor
-    camera_snapshot = target_img_resp.shot.transforms_snapshot
-    
-    world_T_cam = get_a_tform_b(camera_snapshot, root_frame, cam_frame)
-    target_world = world_T_cam * target_cam
-    obj_x, obj_y = target_world.x, target_world.y
-
-    state = agent.state_client.get_robot_state()
-    tf = state.kinematic_state.transforms_snapshot
-    world_T_body = get_a_tform_b(tf, root_frame, "body")
-    rob_x, rob_y = world_T_body.position.x, world_T_body.position.y
-    
-    dx = obj_x - rob_x
-    dy = obj_y - rob_y
-    angle = math.atan2(dy, dx)
-    
-    # 采用 0.95 米的最佳 standoff 距离，保证机械臂向前伸时（0.8m）手部相机刚好在瓶子前方约 15cm 处
-    standoff_dist = 0.95
-    nav_x = obj_x - standoff_dist * math.cos(angle)
-    nav_y = obj_y - standoff_dist * math.sin(angle)
-    nav_yaw_deg = math.degrees(angle)
-    
-    logger.info(f"Target estimated coordinates: X={obj_x:.2f}, Y={obj_y:.2f}")
-    logger.info(f"Walking to prep stance (standoff={standoff_dist}m): X={nav_x:.2f}, Y={nav_y:.2f}, Yaw={nav_yaw_deg:.1f}°")
-    
-    # 移动到对齐抓取的位置
-    if not agent.move_to_goal(x=nav_x, y=nav_y, angle_deg=nav_yaw_deg, frame="vision", use_local_origin=False, timeout_sec=12.0):
-        logger.warning("Failed to reach prep stance. Attempting grasp anyway.")
-
-    # 4. 精确定位和出抓
-    # 保持 _arm_out 姿态重新对齐扫描（此时手部相机在瓶子前方 15cm）
-    logger.info("Extending arm forward to scan for target...")
-    agent._arm_out()
-    time.sleep(2.0)
-
-    logger.info("Scanning for precise target locking...")
-    target_grasped = False
-    try:
-        image_responses = agent.img_client.get_image([build_image_request("hand_color_image", quality_percent=70)])
-        if image_responses:
-            res = image_responses[0]
-            img_np = np.frombuffer(res.shot.image.data, dtype=np.uint8)
-            img = cv2.imdecode(img_np, cv2.IMREAD_COLOR)
-            
-            results = detector.detect_targets_in_batch({'hand_color_image': img}, conf=0.05)
-            if results:
-                best = results[0]
-                new_x, new_y = best['cx'], best['cy']
-                logger.info(f"Target relocalized at pixel: ({new_x}, {new_y}). Executing grasp...")
-                if agent.grasp_object(res, "hand_color_image", new_x, new_y, best['class']):
-                    logger.info("Target grasped successfully.")
-                    target_grasped = True
-            else:
-                logger.warning("Lost target after walking closer. Trying fallback direct grasp using original detection...")
-                # 备用方案：由于在极近距离下有些瓶子轮廓可能被切割从而无法在第二帧检测中识别，
-                # 我们可以直接向之前解析的、已经非常准确的绝对空间点发送抓取指令。
-                if agent.grasp_object(target_img_resp, cam_name, cx, cy, cls_name):
-                    logger.info("Fallback grasp succeeded.")
-                    target_grasped = True
-    except Exception as e:
-        logger.error(f"Precise localization/grasp failed: {e}")
-
-    if not target_grasped:
-        logger.error("Grasp failed. Returning to start position...")
-        agent._recover_arm_safely()
-        agent.move_to_goal(x=start_x, y=start_y, angle_deg=math.degrees(start_yaw), frame="vision", use_local_origin=False, timeout_sec=15.0)
-        return
-
-    # 5. 走回到启动点，平放到面前
-    logger.info("Walking back to the starting point...")
-    time.sleep(0.5)
-    if not agent.move_to_goal(x=start_x, y=start_y, angle_deg=math.degrees(start_yaw), frame="vision", use_local_origin=False, timeout_sec=15.0):
-        logger.warning("Timed out or failed walking back to start. Placing object here.")
-
-    agent.place_flat_in_front()
-    logger.info("Mission complete.")
-
-
-@safety_fallback_decorator
-def run_patrol(agent: SpotAgent, route: list[str]) -> None:
-    ids = []
-    for wp_name in route:
-        wp_id = agent.get_waypoint_id_by_name(agent.graph, wp_name)
-        if wp_id:
-            ids.append(wp_id)
-        else:
-            logger.warning(f"Waypoint not found: {wp_name}")
-    for wp_id in ids:
-        agent.navigate_to_waypoint(wp_id)
-    time.sleep(1.0)
-
-
-@safety_fallback_decorator
-def run_reset(agent: SpotAgent) -> None:
-    logger.info("Reset: Spot is loaded and standing. Querying battery info...")
-
-    # 1. Query battery state and display
-    try:
-        state = agent.state_client.get_robot_state()
-        if state.battery_states:
-            for idx, battery_state in enumerate(state.battery_states):
-                pct = battery_state.charge_percentage.value
-                status = battery_state.Status.Name(battery_state.status)
-                runtime_secs = battery_state.estimated_runtime.seconds
-                logger.info(f"Battery {idx}: Status={status}, Charge={pct:.1f}%, Est. Runtime={runtime_secs // 60}m {runtime_secs % 60}s")
-        else:
-            logger.warning("No battery states reported.")
-    except Exception as e:
-        logger.error(f"Failed to query battery state: {e}")
-
-    logger.info("Reset: Holding nominal stand for 2 s...")
-    time.sleep(2.0)
-    logger.info("Reset: Spot is sitting down...")
-    agent.sit()
-    logger.info("Reset: Spot is powering off...")
-    agent.power_off()
-
-
-@safety_fallback_decorator
-def run_stretch(agent: SpotAgent) -> None:
-    logger.info("Stretch: Spot is loaded and standing. Performing a deep stretch...")
-    from bosdyn.api import trajectory_pb2
-    from bosdyn.api.spot import robot_command_pb2 as spot_command_pb2
-    from bosdyn.client.math_helpers import SE3Pose
-    from bosdyn.geometry import EulerZXY
-
-    try:
-        # Deep stretch: butt backward, head down, front legs extended as much as possible
-        # x_offset = -0.12 (butt backward), z_offset = -0.06 (lower body), pitch = -0.35 (head down)
-        logger.info("Stretch: stretching (head down, butt back)...")
-
-        quat = EulerZXY(pitch=-0.35).to_quaternion()
-        pose = SE3Pose(x=-0.12, y=0.0, z=-0.06, rot=quat).to_proto()
-        point = trajectory_pb2.SE3TrajectoryPoint(pose=pose)
-        traj = trajectory_pb2.SE3Trajectory(points=[point])
-        body_control = spot_command_pb2.BodyControlParams(base_offset_rt_footprint=traj)
-        params = spot_command_pb2.MobilityParams(body_control=body_control)
-
-        cmd = RobotCommandBuilder.synchro_stand_command(params=params)
-        agent.cmd_client.robot_command(cmd)
-        time.sleep(4.0)
-
-        # Return to nominal stand
-        logger.info("Stretch: Returning to nominal stance...")
-        cmd_nominal = RobotCommandBuilder.synchro_stand_command()
-        agent.cmd_client.robot_command(cmd_nominal)
-        time.sleep(2.0)
-    except Exception as e:
-        logger.error(f"Failed to stretch: {e}")
-
-    logger.info("Stretch: Spot is sitting down...")
-    agent.sit()
-    logger.info("Stretch: Spot is powering off...")
-    agent.power_off()
-
-
-@safety_fallback_decorator
-def run_stepping_in_place(agent: SpotAgent) -> None:
-    logger.info("Stepping: Spot is standing. Preparing to step in place...")
-    from bosdyn.api.spot import robot_command_pb2 as spot_command_pb2
-    from bosdyn.client import frame_helpers, math_helpers
-
-    try:
-        # Get current body pose to construct relative stance targets
-        state = agent.state_client.get_robot_state()
-        vo_T_body = frame_helpers.get_se2_a_tform_b(
-            state.kinematic_state.transforms_snapshot,
-            frame_helpers.VISION_FRAME_NAME,
-            frame_helpers.GRAV_ALIGNED_BODY_FRAME_NAME
-        )
-
-        if vo_T_body is None:
-            logger.error("Stepping: Could not get transform from body to vision frame.")
-            return
-
-        x_offset = 0.30
-        y_offset = 0.22
-        step_dist = 0.08  # 8cm step distance
-        step_duration = 0.6  # time to step
-        cycles = 3
-
-        # Configure swing height to HIGH for a very clear leg lifting action
-        params = spot_command_pb2.MobilityParams(
-            swing_height=spot_command_pb2.SWING_HEIGHT_HIGH
-        )
-
-        # Define nominal (rest) positions for all 4 feet
-        fl_nom = vo_T_body * math_helpers.SE2Pose(x_offset, y_offset, 0)
-        fr_nom = vo_T_body * math_helpers.SE2Pose(x_offset, -y_offset, 0)
-        hl_nom = vo_T_body * math_helpers.SE2Pose(-x_offset, y_offset, 0)
-        hr_nom = vo_T_body * math_helpers.SE2Pose(-x_offset, -y_offset, 0)
-
-        # Define stepped positions (shift forward by step_dist)
-        fl_step = vo_T_body * math_helpers.SE2Pose(x_offset + step_dist, y_offset, 0)
-        fr_step = vo_T_body * math_helpers.SE2Pose(x_offset + step_dist, -y_offset, 0)
-        hl_step = vo_T_body * math_helpers.SE2Pose(-x_offset + step_dist, y_offset, 0)
-        hr_step = vo_T_body * math_helpers.SE2Pose(-x_offset + step_dist, -y_offset, 0)
-
-        def send_stance(fl, fr, hl, hr):
-            stance_cmd = RobotCommandBuilder.stance_command(
-                frame_helpers.VISION_FRAME_NAME,
-                fl.position, fr.position, hl.position, hr.position,
-                params=params
-            )
-            # Stance commands require a short-term end_time
-            end_time_secs = time.time() + step_duration + 2.0
-            stance_cmd.synchronized_command.mobility_command.stance_request.end_time.CopyFrom(
-                agent.robot.time_sync.robot_timestamp_from_local_secs(end_time_secs)
-            )
-            agent.cmd_client.robot_command(stance_cmd)
-            time.sleep(step_duration)
-
-        logger.info("Stepping: Starting clockwise step sequence (FL -> FR -> HR -> HL)...")
-        for cycle in range(cycles):
-            logger.info(f"Stepping Cycle {cycle + 1}/{cycles}...")
-
-            # 1. Front Left (FL)
-            logger.info("Stepping FL...")
-            send_stance(fl_step, fr_nom, hl_nom, hr_nom)
-            send_stance(fl_nom, fr_nom, hl_nom, hr_nom)
-
-            # 2. Front Right (FR)
-            logger.info("Stepping FR...")
-            send_stance(fl_nom, fr_step, hl_nom, hr_nom)
-            send_stance(fl_nom, fr_nom, hl_nom, hr_nom)
-
-            # 3. Hind Right (HR)
-            logger.info("Stepping HR...")
-            send_stance(fl_nom, fr_nom, hl_nom, hr_step)
-            send_stance(fl_nom, fr_nom, hl_nom, hr_nom)
-
-            # 4. Hind Left (HL)
-            logger.info("Stepping HL...")
-            send_stance(fl_nom, fr_nom, hl_step, hr_nom)
-            send_stance(fl_nom, fr_nom, hl_nom, hr_nom)
-
-        logger.info("Stepping: sequence completed.")
-    except Exception as e:
-        logger.error(f"Failed to step in place: {e}")
-
-    logger.info("Stepping: Spot is sitting down...")
-    agent.sit()
-    logger.info("Stepping: Spot is powering off...")
-    agent.power_off()
-
-
-@safety_fallback_decorator
-def run_wasd_teleop(agent: SpotAgent) -> None:
-    import cv2
-    import numpy as np
-    from bosdyn.api import image_pb2
-    from bosdyn.client.frame_helpers import BODY_FRAME_NAME
-    from bosdyn.client.image import build_image_request
-    from bosdyn.client.math_helpers import Quat
-
-    logger.info("WASD Teleop: Pointing arm straight ahead and opening gripper...")
-
-    # Point arm straight ahead
-    try:
-        q = Quat()  # identity quaternion
-        arm_cmd = RobotCommandBuilder.arm_pose_command(
-            0.80, 0.0, 0.20,
-            q.w, q.x, q.y, q.z,
-            BODY_FRAME_NAME,
-            2.0
-        )
-        agent.cmd_client.robot_command(arm_cmd)
-        time.sleep(1.5)
-        # Open gripper
-        agent.cmd_client.robot_command(RobotCommandBuilder.claw_gripper_open_command())
-        time.sleep(0.5)
-    except Exception as e:
-        logger.error(f"Failed to position arm: {e}")
-
-    logger.info("WASD Teleop: Starting video stream window. Focus the OpenCV window to drive!")
-
-    img_req = [build_image_request(
-        "hand_color_image",
-        image_format=image_pb2.Image.FORMAT_JPEG,
-        quality_percent=70
-    )]
-
-    WIN_NAME = "Spot WASD Video Stream"
-    cv2.namedWindow(WIN_NAME, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(WIN_NAME, 960, 720)
-
-    try:
-        while True:
-            v_x = v_y = v_rot = 0.0
-            desc = ""
-
-            # 1. Grab image and display
-            try:
-                resp_list = agent.img_client.get_image(img_req)
-                if resp_list:
-                    img_resp = resp_list[0]
-                    img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint8)
-                    frame = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-
-                    if frame is not None:
-                        hud = [
-                            "WASD: Drive  Q/E: Turn",
-                            "X or ESC: Exit & Sit Down",
-                        ]
-                        y = 30
-                        for text in hud:
-                            cv2.putText(frame, text, (15, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-                            y += 25
-                        cv2.imshow(WIN_NAME, frame)
-            except Exception as e:
-                # If image fetch fails, show a black screen in OpenCV
-                black = np.zeros((720, 960, 3), np.uint8)
-                cv2.putText(black, f"Image error: {e}", (20, 360), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-                cv2.imshow(WIN_NAME, black)
-
-            # Check if OpenCV window was closed
-            if cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_VISIBLE) < 1:
-                logger.info("WASD: Video window closed by user.")
-                break
-
-            # 2. Non-blocking key check (wait 30ms)
-            k = cv2.waitKey(30) & 0xFF
-
-            if k == ord('x') or k == ord('X') or k == 27:  # 'x' or ESC
-                logger.info("WASD: Exiting teleop...")
-                break
-
-            if k == ord('w') or k == ord('W'):
-                v_x = 0.5
-                desc = "Forward"
-            elif k == ord('s') or k == ord('S'):
-                v_x = -0.5
-                desc = "Backward"
-            elif k == ord('a') or k == ord('A'):
-                v_y = 0.5
-                desc = "Strafe Left"
-            elif k == ord('d') or k == ord('D'):
-                v_y = -0.5
-                desc = "Strafe Right"
-            elif k == ord('q') or k == ord('Q'):
-                v_rot = 0.8
-                desc = "Turn Left"
-            elif k == ord('e') or k == ord('E'):
-                v_rot = -0.8
-                desc = "Turn Right"
-
-            # 3. Send command to Spot
-            if v_x != 0.0 or v_y != 0.0 or v_rot != 0.0:
-                logger.info(f"WASD Command: {desc}")
-                try:
-                    cmd = RobotCommandBuilder.synchro_velocity_command(v_x=v_x, v_y=v_y, v_rot=v_rot)
-                    agent.cmd_client.robot_command(cmd, end_time_secs=time.time() + 0.6)
-                except Exception as e:
-                    logger.error(f"Failed to send movement command: {e}")
-
-    finally:
-        cv2.destroyAllWindows()
-
-    # Sit and power off on exit
-    logger.info("WASD: commanding robot to sit down...")
-    agent.sit()
-    logger.info("WASD: powering off...")
-    agent.power_off()
-
-
-@safety_fallback_decorator
-def run_stand_and_view(agent: SpotAgent) -> None:
-    logger.info("Stand: Spot is standing. Extending arm and opening hand camera...")
-    # 1. 伸展手臂
-    agent._arm_out()
-    
-    # 2. 打开 OpenCV 窗口展示手部相机画面
-    WIN_NAME = "Spot Hand Camera Stream"
-    cv2.namedWindow(WIN_NAME, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(WIN_NAME, 960, 720)
-    
-    img_req = [build_image_request(
-        "hand_color_image",
-        image_format=image_pb2.Image.FORMAT_JPEG,
-        quality_percent=70
-    )]
-    
-    logger.info("Press ESC or 'q' in the OpenCV window to exit and stow arm.")
-    try:
-        while True:
-            try:
-                resp_list = agent.img_client.get_image(img_req)
-                if resp_list:
-                    img_resp = resp_list[0]
-                    img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint8)
-                    frame = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-                    if frame is not None:
-                        cv2.putText(frame, "Press ESC or 'q' to exit", (15, 30), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                        cv2.imshow(WIN_NAME, frame)
-            except Exception as e:
-                logger.warning(f"Failed to fetch image: {e}")
-                
-            if cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_VISIBLE) < 1:
-                break
-                
-            k = cv2.waitKey(30) & 0xFF
-            if k == 27 or k == ord('q') or k == ord('Q'):
-                break
-    finally:
-        cv2.destroyAllWindows()
-        logger.info("Stowing arm...")
-        agent._arm_in()
-        time.sleep(1.0)
-
-
-@safety_fallback_decorator
-def run_arm_height_view(agent: SpotAgent) -> None:
-    import random
-    logger.info("Arm 1m Height & View: Spot is standing. Positioning arm to 1.0m height, facing straight ahead...")
-    
-    # 1. Get current body height from ground (odom frame) to compute target z
-    try:
-        state = agent.state_client.get_robot_state()
-        transforms = state.kinematic_state.transforms_snapshot
-        from bosdyn.client.frame_helpers import BODY_FRAME_NAME, ODOM_FRAME_NAME
-        tform = get_a_tform_b(transforms, ODOM_FRAME_NAME, BODY_FRAME_NAME)
-        body_height = tform.position.z
-        logger.info(f"Current body height from ground: {body_height:.2f} m")
-    except Exception as e:
-        logger.warning(f"Could not retrieve body height, defaulting to 0.5m: {e}")
-        body_height = 0.5
-
-    # 1.0m height from ground -> target_z relative to body frame
-    target_z = 1.0 - body_height
-    logger.info(f"Commanding arm to x=0.75m, z={target_z:.2f}m in body frame...")
-
-    try:
-        q = Quat()  # Identity rotation (w=1, x=0, y=0, z=0): points gripper straight forward
-        arm_cmd = RobotCommandBuilder.arm_pose_command(
-            0.75, 0.0, target_z,
-            q.w, q.x, q.y, q.z,
-            GRAV_ALIGNED_BODY_FRAME_NAME,
-            2.0
-        )
-        agent.cmd_client.robot_command(arm_cmd)
-        time.sleep(2.0)
-        
-        # Open gripper
-        agent.cmd_client.robot_command(RobotCommandBuilder.claw_gripper_open_command())
-        time.sleep(0.5)
-    except Exception as e:
-        logger.error(f"Failed to position arm: {e}")
-
-    # 2. Open OpenCV Window and show video stream at highest quality
-    WIN_NAME = "Spot Hand Camera - 1m Height (Press ESC or Q to Exit)"
-    cv2.namedWindow(WIN_NAME, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(WIN_NAME, 1280, 720)
-
-    img_req = [build_image_request(
-        "hand_color_image",
-        quality_percent=95,
-        image_format=image_pb2.Image.FORMAT_JPEG
-    )]
-
-    logger.info("Starting video stream. Focus the OpenCV window and press ESC or 'q' to exit.")
-    
-    start_time = time.time()
-    last_cycle_idx = -1
-    angle_deg = 0.0
-
-    try:
-        while True:
-            # Gripper sweep logic
-            current_time = time.time()
-            elapsed = current_time - start_time
-            cycle_idx = int(elapsed / 12.0)
-            
-            if cycle_idx != last_cycle_idx:
-                last_cycle_idx = cycle_idx
-                # Random angle between -60 and 60 degrees
-                angle_deg = random.uniform(-60.0, 60.0)
-                angle_rad = math.radians(angle_deg)
-                logger.info(f"Sweep Cycle {cycle_idx}: rotating to {angle_deg:.1f}° over 6 seconds...")
-                try:
-                    q_target = Quat.from_yaw(angle_rad)
-                    arm_cmd = RobotCommandBuilder.arm_pose_command(
-                        0.75, 0.0, target_z,
-                        q_target.w, q_target.x, q_target.y, q_target.z,
-                        GRAV_ALIGNED_BODY_FRAME_NAME,
-                        6.0  # 6 seconds to rotate
-                    )
-                    agent.cmd_client.robot_command(arm_cmd)
-                except Exception as e:
-                    logger.error(f"Failed to command arm rotation: {e}")
-
-            try:
-                resp_list = agent.img_client.get_image(img_req)
-                if resp_list:
-                    img_resp = resp_list[0]
-                    img_data = np.frombuffer(img_resp.shot.image.data, dtype=np.uint8)
-                    frame = cv2.imdecode(img_data, cv2.IMREAD_COLOR)
-                    if frame is not None:
-                        h, w = frame.shape[:2]
-                        # Upscale low-res frames to fill the window
-                        if w < 1280:
-                            scale = 1280.0 / w
-                            new_w = 1280
-                            new_h = int(h * scale)
-                            frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
-                            h, w = frame.shape[:2]
-
-                        # Put resolution and exit helper text on HUD
-                        cv2.putText(
-                            frame,
-                            f"Res: {w}x{h} | ESC/Q: Exit & Sit/PowerOff",
-                            (20, 40),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.8,
-                            (0, 255, 0),
-                            2,
-                            cv2.LINE_AA,
-                        )
-                        
-                        # Add current angle/status to HUD
-                        action_str = "Rotating to" if (elapsed % 12.0 < 6.0) else "Holding at"
-                        cv2.putText(
-                            frame,
-                            f"Angle: {angle_deg:.1f} deg ({action_str})",
-                            (20, 80),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.8,
-                            (0, 255, 255),
-                            2,
-                            cv2.LINE_AA,
-                        )
-                        
-                        cv2.imshow(WIN_NAME, frame)
-            except Exception as e:
-                logger.warning(f"Failed to fetch image: {e}")
-
-            # Check if OpenCV window was closed
-            if cv2.getWindowProperty(WIN_NAME, cv2.WND_PROP_VISIBLE) < 1:
-                logger.info("Video window closed by user.")
-                break
-
-            k = cv2.waitKey(30) & 0xFF
-            if k == 27 or k == ord('q') or k == ord('Q'):
-                logger.info("User requested exit.")
-                break
-    finally:
-        cv2.destroyAllWindows()
-        logger.info("Stowing arm...")
-        agent._arm_in()
-        time.sleep(1.0)
-        logger.info("Commanding robot to sit down...")
-        agent.sit()
-        logger.info("Powering off...")
-        agent.power_off()
-
-
-@safety_fallback_decorator
-def run_sit_down_rest(agent: SpotAgent) -> None:
-    logger.info("Sit down / Rest: Stowing arm...")
-    agent._arm_in()
-    time.sleep(1.5)
-    logger.info("Sitting down...")
-    agent.sit()
-    logger.info("Powering off...")
-    agent.power_off()
-
-
-@safety_fallback_decorator
-def run_fetch_one_point(agent: SpotAgent, guard_point: str, home_point: str) -> None:
-    detector = SpotDetector()
-    guard_id = agent.get_waypoint_id_by_name(agent.graph, guard_point)
-    home_id = agent.get_waypoint_id_by_name(agent.graph, home_point)
-    if not guard_id or not home_id:
-        logger.error("Required waypoints not found — aborting mission.")
-        return
-    logger.info(f"Navigating to target point: {guard_point}")
-    while not agent.navigate_to_waypoint(guard_id):
-        logger.warning("Failed to reach target point. Retrying in 3 s...")
-        time.sleep(3.0)
-    logger.info("At target point — searching for target...")
-    target_grasped = False
-    while not target_grasped:
-        agent._arm_out()
-        time.sleep(2.0)
-        detected = agent.find_target(detector)
-        if detected is None:
-            logger.info("No object detected. Waiting 3 s...")
-            time.sleep(3.0)
+        if found is None or not found.tracks:
+            hooks.phase("nothing registered to sort — watching")
+            logger.info(f"No object seen consistently. Surveying again in {rescan_sec:.0f} s.")
+            time.sleep(rescan_sec)
             continue
-        target_img_resp, cam_name, cx, cy, cls_name = detected
-        if agent.grasp_object(target_img_resp, cam_name, cx, cy, cls_name):
-            logger.info("Target grasped.")
-            target_grasped = True
-            time.sleep(0.2)
-        else:
-            logger.warning("Grasp failed — returning to target point...")
-            agent.navigate_to_waypoint(guard_id)
-            time.sleep(2.0)
-    logger.info(f"Returning home: {home_point}")
-    if agent.navigate_to_waypoint(home_id):
-        logger.info("At home — releasing target.")
-        time.sleep(0.2)
-        agent._arm_release(bin=True)
-        time.sleep(1.2)
-        logger.info("Mission complete.")
-    else:
-        logger.error("Failed to reach home — check manually.")
+        logger.info(f"Survey: {len(found.tracks)} registered object(s) — "
+                    + ", ".join(f"#{t.id} {t.label}" for t in found.tracks))
+
+        choice = hooks.choose(found)
+        if choice is None:
+            continue
+        cycle += 1
+        obj, group = choice.obj, choice.group
+        logger.info(f"[Cycle {cycle}] taking {choice.track.summary()} → {GROUPS[group]['label']} bin")
+
+        at_pick = False  # whatever happens next, the robot will have walked off the point
+        if not planner.pick(choice.scene, obj, target=choice.track.position):
+            logger.warning(f"[Cycle {cycle}] grasp failed — back to the pick point to look again")
+            continue
+
+        _picked(vision, choice)
+        hooks.phase(f"carrying to the {GROUPS[group]['label']} bin")
+        if not agent.navigate_to_waypoint(bin_ids[group]):
+            logger.error(f"[Cycle {cycle}] could not reach the {group} bin — holding the object, stopping")
+            agent.hold_position()
+            return False
+        hooks.phase(f"dropping into the {GROUPS[group]['label']} bin")
+        agent.drop_in_bin()
+        logger.success(f"[Cycle {cycle}] {obj.label} sorted into {GROUPS[group]['label']}")
 
 
-@safety_fallback_decorator
-def run_fetch_one_point_loop(agent: SpotAgent, guard_point: str, home_point: str) -> None:
-    return run_guard_loop(agent, guard_point, home_point)
+# ── grasp here, no map ────────────────────────────────────────────────────────
+
+# How far from the body an object may be and still count as "in front of Spot". The grasp
+# planner walks the rest itself, on odometry, so this bounds the walk, not the arm.
+GRAB_REACH = float(os.getenv("GRAB_REACH_M", "2.0"))
+
+
+@safety_fallback
+def run_grasp_here(agent: SpotAgent, vision: Vision, hooks: SortHooks, attempts: int = 3,
+                   rescan_sec: float = 2.0) -> bool:
+    """Pick up one object near where Spot stands, set it back down in front, stow. No map.
+
+    Survey with the body cameras and the hand, keep the registered objects within `GRAB_REACH`, and ask
+    `hooks.choose` for one (the operator's click, or the best). The grasp is the sorting
+    demo's — approach, line up, grasp, grip by material — which runs on odometry and never
+    needs GraphNav. Then `set_down()` and done. Gives up after ``attempts`` surveys with
+    nothing in reach; an operator's rescan does not count against that.
+    """
+    planner = GraspPlanner(agent, vision, phase=hooks.phase)
+    empty = 0
+    while True:
+        agent.check_halt()
+        hooks.phase("surveying around Spot")
+        try:
+            found = survey(agent, vision, keep=lambda t: distance_to(agent, t) <= GRAB_REACH,
+                           surround=hooks.surround())
+        except CoreIOUnavailable as exc:
+            logger.error(f"Vision service unavailable ({exc})")
+            return False
+        if found is None or not found.tracks:
+            empty += 1
+            if empty >= attempts:
+                logger.warning(f"Nothing registered within {GRAB_REACH:.1f} m after {attempts} surveys — giving up.")
+                return False
+            logger.info(f"Nothing registered within {GRAB_REACH:.1f} m. Surveying again in {rescan_sec:.0f} s.")
+            time.sleep(rescan_sec)
+            continue
+        logger.info(f"Survey: {len(found.tracks)} registered object(s) within {GRAB_REACH:.1f} m — "
+                    + ", ".join(f"#{t.id} {t.label}" for t in found.tracks))
+
+        choice = hooks.choose(found)
+        if choice is None:
+            continue
+        logger.info(f"Taking {choice.track.summary()}")
+        if not planner.pick(choice.scene, choice.obj, target=choice.track.position):
+            logger.warning(f"Could not grasp {choice.track.label}.")
+            return False
+        _picked(vision, choice)
+
+        hooks.phase(f"setting {choice.track.label} down")
+        agent.set_down()
+        logger.success(f"Picked up {choice.track.label} and set it down.")
+        return True
+
+
+__all__ = [
+    "AutoChoice",
+    "Choice",
+    "MissionStopped",
+    "SortHooks",
+    "SortPoints",
+    "Survey",
+    "run_go_to",
+    "run_grasp_here",
+    "run_initialisation",
+    "run_patrol_loop",
+    "run_sit_down",
+    "run_sort_loop",
+    "survey",
+]

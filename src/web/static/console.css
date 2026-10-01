@@ -1,0 +1,904 @@
+/* RMIT Centre for Future Construction — Spot console.
+   Dark, high-contrast, one screen, no scrolling of the page itself: the panels scroll,
+   the layout does not, because the whole point is that everything is visible at once
+   while the robot is moving.
+   Self-contained on purpose — no webfonts, no CDNs. The laptop driving this is usually
+   joined to Spot's own wifi with no route to the internet. */
+
+:root {
+  /* Sampled out of assets/images/RMIT-emblem.jpg, so the mark in the header and every
+     red on the page are the same red rather than two that nearly match. */
+  --rmit-red: #e52a21;
+  --rmit-red-dim: #9b1a13;
+  /* The neutrals are cool rather than grey — a blue-slate charcoal, which is what makes
+     RMIT red read as the one warm thing on the page instead of one colour among several.
+     Every surface is a step on the same ramp, so panels sit on the backdrop without
+     needing a border to be told apart. */
+  --ink: #06080d;
+  --panel: #101724;
+  --panel-2: #172030;
+  --raise: #1e293b;
+  --line: #2a3548;
+  --line-soft: #1d2635;
+  --text: #e9edf5;
+  --muted: #7f8a9e;
+  --dim: #566175;
+  --cyan: #2fd4e8;
+  --green: #34d399;
+  --amber: #fbbf24;
+  --violet: #c084fc;
+  /* One line of brand instead of two, so the bar is short — and the layout below has to
+     know by exactly how much, which is why this is a variable rather than a number typed
+     into two rules that then drift apart. Tall enough now for the mark to be legible from
+     the back of a room rather than only from the driving seat. */
+  --topbar: 76px;
+  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* The panels below set `display` explicitly, and an author `display` beats the user
+   agent's rule for [hidden] — so the overlay and the teleop bar need this or they are
+   never actually hidden. */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow: hidden;
+}
+
+/* Backdrop: a faint engineering grid plus a red bloom behind the header. Static enough
+   to read against, alive enough to look like something is running. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(1000px 460px at 10% -12%, rgba(229, 42, 33, 0.16), transparent 68%),
+    radial-gradient(820px 560px at 100% 112%, rgba(47, 212, 232, 0.07), transparent 70%),
+    linear-gradient(rgba(150, 180, 230, 0.028) 1px, transparent 1px) 0 0 / 100% 44px,
+    linear-gradient(90deg, rgba(150, 180, 230, 0.028) 1px, transparent 1px) 0 0 / 44px 100%;
+}
+
+/* ── header ───────────────────────────────────────────────────────────── */
+
+.topbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: var(--topbar);
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(16, 22, 32, 0.94), rgba(6, 8, 13, 0.74));
+  backdrop-filter: blur(6px);
+}
+
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+
+/* The emblem carries its own colour and nothing else — red shape, transparent ground — so
+   it needs neither the white plate the full lockup wanted nor an `invert()` that would turn
+   RMIT red into salmon. Sized by height and left to find its own width. */
+.brand-mark {
+  height: 46px;
+  width: auto;
+  flex: none;
+  filter: drop-shadow(0 0 16px rgba(229, 42, 33, 0.45));
+}
+
+/* One line, and one that is allowed to lose its tail rather than push the status pills
+   off the header on a narrow laptop. */
+.brand-text {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: #b9c3d4;
+}
+/* The university's name leads, in the page's own type rather than in the artwork. */
+.brand-text b { color: var(--text); font-weight: 700; letter-spacing: 0.6px; }
+.brand-text i { margin: 0 9px; color: var(--rmit-red); font-style: normal; }
+
+/* Two rows of four: the robot (link, battery, lease, stance) over what it is doing
+   (GraphNav, vision, the mission, which takes two cells). */
+.status {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 5px 6px;
+  margin-left: auto;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(20, 26, 37, 0.82);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.pill.wide { grid-column: span 2; min-width: 220px; }
+.pill em { overflow: hidden; text-overflow: ellipsis; }
+.pill i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted);
+  box-shadow: 0 0 0 3px rgba(138, 138, 152, 0.14);
+}
+.pill b { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 10px; }
+.pill em { font-style: normal; font-family: var(--mono); color: var(--text); }
+.pill.ok i { background: var(--green); box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16); }
+.pill.busy i { background: var(--rmit-red); box-shadow: 0 0 0 3px rgba(229, 42, 33, 0.22); animation: throb 1.1s infinite; }
+.pill.warn i { background: var(--amber); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.16); }
+.pill.live i { background: var(--cyan); box-shadow: 0 0 0 3px rgba(47, 212, 232, 0.18); }
+
+@keyframes throb { 50% { opacity: 0.25; } }
+
+/* ── layout ───────────────────────────────────────────────────────────── */
+
+.layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  /* Two columns: commands, and the display area taking everything else — the log is one
+     of its tabs rather than a third column. */
+  grid-template-columns: 290px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px;
+  height: calc(100% - var(--topbar));
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(25, 33, 47, 0.9), rgba(14, 19, 28, 0.92));
+  /* One hairline of light along the top edge — the panel reads as raised off the backdrop
+     without the border having to be bright enough to draw the eye on its own. */
+  box-shadow: inset 0 1px 0 rgba(190, 214, 255, 0.05), 0 18px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  /* The title stays on one line: the log column is 340px and "Run Log" wrapping under its
+     own filters costs the panel a row of height for nothing. */
+  white-space: nowrap;
+}
+.panel-title::before {
+  content: "";
+  width: 3px; height: 14px;
+  background: var(--rmit-red);
+  box-shadow: 0 0 12px rgba(229, 42, 33, 0.7);
+}
+.spacer { flex: 1; }
+
+/* ── commands ─────────────────────────────────────────────────────────── */
+
+/* min-height:0 or the list refuses to shrink and pushes the phase line out. */
+.commands-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 12px 12px; }
+
+/* Three blocks — System, Posture, Actions — each a titled card. */
+.block {
+  margin-top: 12px;
+  padding: 10px 10px 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: rgba(8, 11, 17, 0.35);
+}
+.block-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 9px 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+.block-name::before { content: ""; width: 3px; height: 11px; background: var(--rmit-red); }
+/* Posture: walking across the top, Stand and Sit side by side under it. */
+.block-posture .block-body { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+.block-posture .cmd-drive { grid-column: 1 / -1; margin-bottom: 8px; }
+
+.cmd {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel-2);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.16s, transform 0.16s, background 0.16s;
+}
+/* A red wipe from the left on hover — the one flourish the buttons get. */
+.cmd::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--rmit-red);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.18s;
+}
+.cmd:hover:not(:disabled) { border-color: #33405a; background: var(--raise); transform: translateX(2px); }
+.cmd:hover:not(:disabled)::before { transform: scaleY(1); }
+.cmd:disabled { opacity: 0.38; cursor: not-allowed; }
+.cmd.running { border-color: var(--rmit-red); background: rgba(229, 42, 33, 0.12); opacity: 1; }
+.cmd.running::before { transform: scaleY(1); }
+
+.cmd-label { display: block; font-size: 13px; font-weight: 600; }
+.cmd-hint { display: block; margin-top: 2px; color: var(--muted); font-size: 10.5px; line-height: 1.3; }
+/* One line each in the longer blocks; the full hint is the button's tooltip. */
+.block-actions .cmd-hint, .block-system .cmd-hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmd .tag {
+  position: absolute; top: 10px; right: 10px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.cmd-teleop.active { border-color: var(--cyan); background: rgba(47, 212, 232, 0.1); }
+
+/* Stop and the AI switch, above the scrolling blocks. The keycaps on the walk button are
+   the affordance: they say the keyboard is the control without the hint having to be read. */
+.commands-head { flex: none; padding: 12px 12px 0; }
+
+.ai-toggle {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+.ai-toggle i { width: 8px; height: 8px; }
+.ai-toggle em { margin-left: auto; font-style: normal; font-family: var(--mono); font-size: 11px; }
+.ai-toggle[data-on="1"] { background: rgba(47, 212, 232, 0.1); }
+.ai-toggle + .ai-toggle { margin-top: 6px; }
+
+.cmd-drive {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 12px;
+  margin-bottom: 0;
+  padding: 12px 13px;
+  border-color: rgba(47, 212, 232, 0.28);
+  background: linear-gradient(180deg, rgba(47, 212, 232, 0.07), rgba(23, 32, 48, 0.95));
+}
+.cmd-drive::before { background: var(--cyan); }
+.cmd-drive:hover:not(:disabled) { border-color: rgba(47, 212, 232, 0.55); background: rgba(47, 212, 232, 0.1); }
+.cmd-drive .cmd-label { grid-column: 1; font-size: 14px; }
+.cmd-drive .cmd-hint { grid-column: 1; margin-top: 0; }
+.cmd-drive .cmd-label b {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border: 1px solid rgba(47, 212, 232, 0.35);
+  border-radius: 4px;
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+.drive-keys {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: grid;
+  grid-template-columns: repeat(3, 20px);
+  gap: 3px;
+}
+.drive-keys i {
+  display: grid;
+  place-items: center;
+  height: 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-style: normal;
+}
+.cmd-drive.active .drive-keys i { border-color: rgba(47, 212, 232, 0.5); color: var(--cyan); }
+
+/* A stance is a state, not a thing that happened: the button for the posture Spot is
+   holding stays lit between missions, which is the whole difference between these two and
+   every other button in the column. Kept green rather than red — red is "running", and a
+   held posture is precisely not that. */
+.cmd-stance.held { border-color: var(--green); background: rgba(52, 211, 153, 0.09); }
+.cmd-stance.held::before { background: var(--green); transform: scaleY(1); }
+.cmd-stance.held .cmd-label::after {
+  content: "held";
+  margin-left: 8px;
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ghost.tiny { padding: 1px 7px; font-size: 9.5px; letter-spacing: 0.6px; }
+
+.stop {
+  flex: none;
+  display: block;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 14px;
+  border: 1px solid var(--rmit-red);
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--rmit-red), var(--rmit-red-dim));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.16s, box-shadow 0.16s;
+}
+.stop:hover { filter: brightness(1.12); box-shadow: 0 0 26px rgba(229, 42, 33, 0.45); }
+.stop small { display: block; margin-top: 3px; font-size: 9.5px; font-weight: 600; letter-spacing: 1.2px; opacity: 0.8; }
+/* Feedback the instant it is pressed, before the console has even answered. */
+.stop.firing { filter: brightness(1.5); box-shadow: 0 0 40px rgba(229, 42, 33, 0.8); }
+
+/* ── video ────────────────────────────────────────────────────────────── */
+
+.tabs, .filters { display: inline-flex; gap: 4px; }
+.tab, .filter {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+}
+.tab.active, .filter.active { border-color: var(--rmit-red); color: #fff; background: rgba(229, 42, 33, 0.18); }
+
+.toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.toggle i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.toggle[data-on="1"] { border-color: var(--cyan); color: var(--cyan); }
+.toggle[data-on="1"] i { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+
+.tabs { flex-wrap: wrap; justify-content: flex-end; }
+/* Warnings that arrived while the log was not on screen. */
+.badge {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #111;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.rec { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--muted); }
+.rec i { width: 7px; height: 7px; border-radius: 50%; background: var(--rmit-red); animation: throb 1.6s infinite; }
+
+.video-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(60% 60% at 50% 45%, rgba(255, 255, 255, 0.04), transparent 70%), #000;
+}
+.feed-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+#feed { flex: 1; min-height: 0; width: 100%; object-fit: contain; }
+
+/* Corner brackets — cheap, and they make a camera feed read as an instrument. */
+.bracket { position: absolute; width: 22px; height: 22px; border: 2px solid rgba(229, 42, 33, 0.75); pointer-events: none; }
+.bracket.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+.bracket.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+.bracket.bl { bottom: 40px; left: 10px; border-right: 0; border-top: 0; }
+.bracket.br { bottom: 40px; right: 10px; border-left: 0; border-top: 0; }
+
+.video-foot {
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line-soft);
+  background: rgba(8, 11, 17, 0.9);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.legend { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; border-radius: 2px; }
+
+.teleop-hud {
+  position: fixed; left: 50%; bottom: 18px; z-index: 10; transform: translateX(-50%);
+  border: 1px solid var(--cyan); border-radius: 10px;
+  display: flex; align-items: center; gap: 14px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--cyan);
+  background: rgba(47, 212, 232, 0.08);
+  font-size: 11.5px;
+  color: var(--text);
+}
+.teleop-hud .keys { display: grid; grid-template-columns: repeat(3, 26px); gap: 3px; }
+.teleop-hud kbd {
+  display: grid; place-items: center;
+  height: 22px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.teleop-hud kbd.down { border-color: var(--cyan); background: rgba(47, 212, 232, 0.22); color: #fff; }
+
+/* ── realsense ────────────────────────────────────────────────────────── */
+
+
+.stale {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.16);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: var(--amber);
+  font-size: 10.5px;
+  letter-spacing: 0.4px;
+}
+
+/* The colour ramp under the depth picture. TURBO is what the bridge maps with, so the
+   gradient here is the same ramp read left to right — near at one end, far at the other,
+   and black called out separately because it is not a distance at all. */
+.depth-key {
+  position: absolute;
+  left: 12px;
+  bottom: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(8, 11, 17, 0.78);
+  font-size: 10.5px;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+.depth-key .ramp {
+  width: 108px;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #30123b, #4145ab, #4675ed, #39a2fc, #1bcfd4,
+                              #24eca6, #61fc6c, #a4fc3b, #d1e935, #f3c53a, #fe9b2d,
+                              #f36315, #d93806, #b11901, #7a0403);
+}
+.depth-key .void { display: flex; align-items: center; gap: 5px; }
+.depth-key .void i {
+  width: 9px; height: 9px; border-radius: 2px;
+  background: #000; border: 1px solid #2a3444;
+}
+
+.depth-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 12px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.depth-readout b { font-size: 17px; color: var(--cyan); letter-spacing: 0.5px; }
+
+/* A RealSense view is measurable, and the cursor is the only affordance saying so. */
+.video-stage { cursor: default; }
+.panel.video.rs .video-stage { cursor: crosshair; }
+
+/* ── the log tab ──────────────────────────────────────────────────────── */
+
+.log-stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; background: #070a10; }
+.log-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.log-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding: 2px 10px 2px 9px;
+  border-left: 3px solid transparent;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.line time { color: var(--dim); flex: none; }
+.line .lvl { flex: none; min-width: 64px; color: var(--muted); letter-spacing: 0.6px; }
+.line .msg { flex: 1 1 0; min-width: 0; }
+.line.info { border-left-color: rgba(138, 138, 152, 0.35); }
+.line.success { border-left-color: var(--green); }
+.line.success .lvl, .line.success .msg { color: var(--green); }
+.line.warning { border-left-color: var(--amber); background: rgba(251, 191, 36, 0.05); }
+.line.warning .lvl, .line.warning .msg { color: var(--amber); }
+.line.error, .line.critical { border-left-color: var(--rmit-red); background: rgba(229, 42, 33, 0.1); }
+.line.error .lvl, .line.error .msg, .line.critical .msg { color: #ff8a8a; }
+.line.task-start { border-left-color: var(--cyan); color: var(--cyan); }
+.line.task-done { border-left-color: rgba(47, 212, 232, 0.5); color: #86e0ee; }
+.line.task-error { border-left-color: var(--rmit-red); color: #ff8a8a; }
+.line.hidden { display: none; }
+
+/* ── the map tab ──────────────────────────────────────────────────────── */
+
+.map-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #05070c;
+}
+/* Both 3D views — the recorded map and the live scan — are a canvas filling the stage. */
+.map-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+.map-stage canvas:active { cursor: grabbing; }
+
+/* The camera panel's own furniture belongs to a camera: brackets around a point cloud
+   read as an instrument that is measuring something, and the detector legend describes
+   boxes that are not there. */
+.panel.video.map .bracket,
+.panel.video.map .video-foot,
+.panel.video.plain .bracket,
+.panel.video.plain .video-foot,
+.panel.video.plain .rec { display: none; }
+
+.map-labels { position: absolute; inset: 0; pointer-events: none; }
+.map-label {
+  position: absolute;
+  transform: translate(10px, -50%);
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(8, 11, 17, 0.82);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: #96a2b6;
+  white-space: nowrap;
+}
+.map-label.pick { color: var(--cyan); border: 1px solid rgba(47, 212, 232, 0.45); }
+.map-label.home { color: var(--green); border: 1px solid rgba(52, 211, 153, 0.45); }
+/* A patrol point carries its position in the lap, because the order is the mission —
+   four labels reading "wp_3" tell you which points, and nothing about the route. */
+.map-label.patrol { color: var(--violet); border: 1px solid rgba(192, 132, 252, 0.45); }
+
+.map-menu {
+  position: absolute;
+  z-index: 3;
+  min-width: 176px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(14, 19, 27, 0.97);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+.map-menu-name {
+  padding: 4px 8px 7px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 5px;
+}
+.map-menu button {
+  display: block;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.map-menu button:hover { background: rgba(255, 255, 255, 0.06); }
+.map-menu button.go { color: var(--cyan); font-weight: 600; }
+
+.map-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  background: linear-gradient(180deg, transparent, rgba(4, 6, 11, 0.88) 40%);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+/* Went with the pop-up it used to live in; the Fit button is the only user left. */
+.ghost {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.ghost:hover { color: var(--text); border-color: #33405a; }
+/* A ghost button that holds a state rather than doing a thing — Follow, in the live bar. */
+.ghost[data-on="1"] { color: var(--cyan); border-color: rgba(47, 212, 232, 0.5); }
+
+.map-key { display: inline-flex; align-items: center; gap: 5px; }
+.map-key i { width: 8px; height: 8px; border-radius: 50%; }
+.map-key i.wp { background: var(--rmit-red); }
+.map-key i.fid { background: var(--text); border-radius: 1px; }
+.map-key i.edge { background: var(--cyan); height: 2px; width: 14px; border-radius: 1px; }
+.map-key i.pat { background: var(--violet); }
+/* Spot itself, in the live view: the one marker on the page that means "now". */
+.map-key i.bot { background: var(--green); box-shadow: 0 0 8px rgba(52, 211, 153, 0.6); }
+
+.map-help {
+  position: absolute;
+  left: 12px; top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim);
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #28313f; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #36435a; }
+
+/* A narrow header keeps the pills and loses the long brand line first. */
+@media (max-width: 1280px) {
+  .brand-text { display: none; }
+}
+
+@media (max-width: 1000px) {
+  html, body { overflow: auto; }
+  .layout { grid-template-columns: 1fr; grid-template-rows: auto minmax(420px, 70vh); height: auto; }
+  .topbar { height: auto; padding: 8px 12px; flex-wrap: wrap; }
+  .status { grid-template-columns: repeat(2, auto); }
+}
+
+/* ── groups ───────────────────────────────────────────────────────────── */
+
+:root { --g-teddy_bear: #ffaa3c; --g-bottle: #32beff; --g-other: #5adc8c; --g-uncertain: #fac828; }
+.legend i.g-teddy_bear { background: var(--g-teddy_bear); }
+.legend i.g-bottle { background: var(--g-bottle); }
+.legend i.g-other { background: var(--g-other); }
+.legend i.g-uncertain { background: var(--g-uncertain); }
+.map-label.bin_teddy_bear { color: var(--g-teddy_bear); border: 1px solid var(--g-teddy_bear); }
+.map-label.bin_bottle { color: var(--g-bottle); border: 1px solid var(--g-bottle); }
+.map-label.bin_other { color: var(--g-other); border: 1px solid var(--g-other); }
+
+.phase-line {
+  flex: none;
+  min-height: 18px;
+  margin: 8px 12px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+}
+.phase-line.halted { color: var(--amber); }
+
+/* ── the AI view ──────────────────────────────────────────────────────── */
+
+.vision-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.vision-overlay .outline { fill: transparent; stroke: transparent; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.vision-overlay .outline.selected { stroke: #fff; stroke-width: 4; }
+.vision-overlay.choosing { pointer-events: auto; }
+.vision-overlay.choosing .outline { cursor: pointer; }
+.vision-overlay.choosing .outline:hover { fill: rgba(255, 255, 255, 0.18); stroke: #fff; }
+/* Registered objects while choosing: always outlined in their bin's colour, dashed where
+   only the registered position is projected; all outlines of one object light up together. */
+.vision-overlay .outline.track { stroke: currentColor; stroke-width: 2.5; fill: rgba(255, 255, 255, 0.04); cursor: pointer; }
+.vision-overlay .outline.track.projected { stroke-dasharray: 6 4; }
+.vision-overlay .outline.track.hot { fill: rgba(255, 255, 255, 0.2); stroke: #fff; stroke-width: 3.5; }
+.chip.projected { border-style: dashed; }
+.choose-list .muted { color: var(--dim); font-size: 11px; }
+
+.blend-bar {
+  position: absolute; right: 14px; bottom: 44px; z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 8px;
+  background: rgba(8, 11, 17, 0.8);
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+}
+.blend-bar input { width: 160px; accent-color: var(--cyan); }
+
+.choose-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 12px;
+  border-top: 1px solid var(--amber);
+  background: rgba(251, 191, 36, 0.08);
+  font-size: 12px;
+}
+.choose-bar > b { color: var(--amber); letter-spacing: 0.4px; }
+.choose-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip, .bin {
+  padding: 4px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(8, 11, 17, 0.6);
+  font: inherit; font-size: 11px; font-family: var(--mono);
+  cursor: pointer;
+}
+.g-teddy_bear { color: var(--g-teddy_bear); }
+.g-bottle { color: var(--g-bottle); }
+.g-other { color: var(--g-other); }
+.g-uncertain { color: var(--g-uncertain); }
+.chip:hover, .bin:hover { background: rgba(255, 255, 255, 0.1); }
+
+.choose-menu {
+  position: absolute; z-index: 4;
+  min-width: 230px; padding: 8px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: rgba(14, 19, 27, 0.97);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+}
+.choose-name { font-weight: 700; font-size: 13px; }
+.choose-meta { margin: 3px 0 8px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+.choose-bins { display: grid; gap: 5px; margin-bottom: 6px; }
+.bin { border-radius: 7px; text-align: left; padding: 7px 10px; font-size: 12px; }
+.bin.predicted { background: rgba(255, 255, 255, 0.08); font-weight: 700; }
+
+/* ── choosing from either camera ──────────────────────────────────────── */
+
+.choose-from { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; }
+
+/* ── the map: no map on the robot ─────────────────────────────────────── */
+
+.map-empty {
+  position: absolute; left: 50%; top: 42%; z-index: 2;
+  transform: translate(-50%, -50%);
+  display: grid; gap: 10px; justify-items: center;
+  max-width: 420px; padding: 20px 24px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(14, 19, 27, 0.95);
+  text-align: center; font-size: 12.5px; color: var(--muted);
+}
+.map-empty b { color: var(--text); font-size: 15px; }
+.map-empty .go, .setup-start {
+  padding: 8px 16px;
+  border: 1px solid var(--cyan); border-radius: 8px;
+  background: rgba(47, 212, 232, 0.12);
+  color: var(--cyan); font: inherit; font-weight: 700; cursor: pointer;
+}
+.map-empty .go:hover, .setup-start:hover { background: rgba(47, 212, 232, 0.22); }
+
+/* ── the points window ────────────────────────────────────────────────── */
+
+.setup {
+  position: absolute; top: 14px; right: 14px; z-index: 5;
+  width: 290px;
+  border: 1px solid var(--cyan); border-radius: 12px;
+  background: rgba(12, 17, 25, 0.97);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.setup-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  cursor: move; user-select: none;
+  font-size: 12.5px;
+}
+.setup-body { display: grid; gap: 8px; padding: 10px 12px 12px; }
+.setup-note { margin: 0; color: var(--muted); font-size: 11px; }
+.setup-fields { display: grid; gap: 7px; }
+.setup-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; }
+.setup-row span { color: var(--muted); }
+.setup-row.slot-bin_teddy_bear span { color: var(--g-teddy_bear); }
+.setup-row.slot-bin_bottle span { color: var(--g-bottle); }
+.setup-row.slot-bin_other span { color: var(--g-other); }
+.setup select {
+  flex: 1; max-width: 160px;
+  padding: 4px 6px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel-2); color: var(--text);
+  font-family: var(--mono); font-size: 11.5px;
+}
+.setup-patrol { margin: 0; padding-left: 22px; font-family: var(--mono); font-size: 11.5px; color: var(--violet); }
+.setup-patrol li { padding: 2px 0; }
+.setup-patrol li .ghost { margin-left: 8px; }
+.setup-patrol li.muted { color: var(--dim); list-style: none; margin-left: -22px; }
+.setup-error { min-height: 14px; color: var(--amber); font-size: 11px; }
+.setup-start { width: 100%; letter-spacing: 1.5px; text-transform: uppercase; }
+
+/* ── the 3D reconstruction ────────────────────────────────────────────── */
+
+.recon-sources {
+  position: absolute; right: 12px; top: 10px; z-index: 2;
+  display: grid; gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: rgba(8, 11, 17, 0.85);
+  font-size: 11.5px;
+}
+.recon-sources label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.recon-sources input { accent-color: var(--cyan); }
+.recon-sources em { margin-left: auto; padding-left: 10px; font-style: normal; font-family: var(--mono); font-size: 10px; color: var(--green); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recon-sources em.warn { color: var(--amber); }
+/* What the AI recognised, pinned where it is in the reconstruction: a dot on the object, the
+   chip beside it in its bin's colour. */
+.recon-label {
+  position: absolute;
+  transform: translate(-4px, -50%);
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.recon-label i { width: 8px; height: 8px; border-radius: 50%; background: var(--tag); box-shadow: 0 0 0 2px rgba(8, 11, 17, 0.8); }
+.recon-label span { padding: 1px 6px; border-radius: 5px; background: rgba(8, 11, 17, 0.82); color: var(--tag); border: 1px solid var(--tag); }
+.recon-label.uncertain span { border-style: dashed; }
+
+/* ── toasts ───────────────────────────────────────────────────────────── */
+
+.toasts { position: fixed; right: 18px; bottom: 18px; z-index: 20; display: grid; gap: 8px; max-width: 420px; }
+.toast {
+  padding: 9px 13px;
+  border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 9px;
+  background: rgba(30, 24, 8, 0.95);
+  color: var(--amber); font-size: 12px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.4s;
+}
+.toast.gone { opacity: 0; }
+.toast.ok { border-color: rgba(52, 211, 153, 0.5); background: rgba(8, 30, 22, 0.95); color: var(--green); }

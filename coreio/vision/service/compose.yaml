@@ -1,0 +1,36 @@
+# spot_vision — segment + classify on the Jetson GPU, for the sorting demo.
+#
+# Written to /data/stacks/spot-vision/compose.yaml by coreio/deploy_vision.py, so Dockge
+# starts, stops and shows it alongside spot-yolo, spot-ros2 and the rest.
+#
+# The image is built on this machine by the same script (FROM yolo:latest, COPY only) and
+# carries its weights. To change the demo's categories: edit coreio/vision/vocab/sort3.json
+# on the laptop, re-run bake_vocab.py, re-run deploy_vision.py.
+#
+# Binds CoreIO-localhost only. Spot forwards just 20022 and 21443 off the CoreIO, so the
+# console reaches this over an SSH channel — the same way it reaches the speaker.
+#
+# It replaces spot-yolo: leave that stack stopped. Both want most of the GPU.
+#
+# restart: "no" like every other stack here — Dockge starts it. Change it to
+# unless-stopped if the demo must come back by itself after a power cycle.
+services:
+  spot_vision:
+    image: spot-vision:latest
+    container_name: spot_vision
+    restart: "no"
+    runtime: nvidia
+    network_mode: host
+
+    environment:
+      VISION_DEVICE: "0"
+      VISION_HALF: "1"
+      VISION_IMGSZ: "640"
+      VISION_HOST: 127.0.0.1
+      VISION_PORT: "8784"
+      # Classification thresholds — see vision_server.py. Tunable here without a rebuild:
+      # edit in Dockge, then "Deploy".
+      VISION_ACCEPT: "0.20"
+      VISION_CERTAIN: "0.40"
+      VISION_MARGIN: "0.10"
+      VISION_SEG_CONF: "0.12"

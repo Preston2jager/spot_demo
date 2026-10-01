@@ -1,11 +1,13 @@
-# 排除 YOLO 模型权重文件
+# 排除模型权重（由 coreio/vision/bake_vocab.py 生成到 runtime/weights/）
 *.pt
-*openvino_model/
+*.ts
+runtime/weights/
 
 # 排除 Python 虚拟环境和缓存
 .venv/
 __pycache__/
 *.pyc
+.ruff_cache/
 
 # 排除本地环境变量与机器人凭据
 .env
@@ -16,3 +18,14 @@ credentials.json
 
 # 排除运行日志（runtime/maps 的地图数据仍然入库）
 runtime/logs/
+
+# Web 控制台在地图页上选定的抓取点/放置点，属于现场配置
+runtime/web_selection.json
+# 地图点云缓存：由机内地图重建得来，内容可再生，且单个文件几 MB
+runtime/clouds/
+
+# demo_web 部署时生成的上传包与带密码的容器环境文件
+coreio/demo_web/app.tar.gz
+coreio/demo_web/demo_web.env
+coreio/demo_web/build/
+runtime/recon_rs_mount.json

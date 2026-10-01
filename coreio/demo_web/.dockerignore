@@ -1,0 +1,8 @@
+# The build context is the whole upload folder, and most of it is not the image's.
+# demo_web.env carries credentials and is mounted at run time with --env-file; it has no
+# business in a layer.
+build/
+logs/
+demo_web.env
+demo_web.env.example
+README.md

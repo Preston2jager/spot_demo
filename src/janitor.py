@@ -38,15 +38,33 @@ class Janitor:
         return graph
 
     @staticmethod
+    def _snapshot_path(save_dir: str, subdir: str, prefix: str, snapshot_id: str) -> str | None:
+        """Find one snapshot file across both map layouts, or None if it is not there.
+
+        `download_graph` writes ``<map>/waypoint_snapshots/<id>`` and
+        ``<map>/edge_snapshots/<id>``; some older exports here are flat, with the id
+        prefixed instead. Both are checked because a map that silently uploads without
+        its snapshots still localises — and then navigates badly, which is a much harder
+        failure to read than a missing file.
+        """
+        for candidate in (
+            os.path.join(save_dir, subdir, snapshot_id),
+            os.path.join(save_dir, f"{prefix}{snapshot_id}"),
+        ):
+            if os.path.exists(candidate):
+                return candidate
+        return None
+
+    @staticmethod
     def load_waypoint_snapshots(save_dir: str, graph: map_pb2.Graph) -> list:
         """Load and return all waypoint snapshot protos referenced by the given graph."""
         snapshots = []
         for wp in graph.waypoints:
             if not wp.snapshot_id:
                 continue
-            path = os.path.join(save_dir, f"wp_{wp.snapshot_id}")
-            if not os.path.exists(path):
-                logger.warning(f"Missing waypoint snapshot: {path}")
+            path = Janitor._snapshot_path(save_dir, "waypoint_snapshots", "wp_", wp.snapshot_id)
+            if path is None:
+                logger.warning(f"Missing waypoint snapshot: {wp.snapshot_id}")
                 continue
             with open(path, "rb") as f:
                 snap = map_pb2.WaypointSnapshot()
@@ -63,9 +81,9 @@ class Janitor:
         for edge in graph.edges:
             if not edge.snapshot_id:
                 continue
-            path = os.path.join(save_dir, f"edge_{edge.snapshot_id}")
-            if not os.path.exists(path):
-                logger.warning(f"Missing edge snapshot: {path}")
+            path = Janitor._snapshot_path(save_dir, "edge_snapshots", "edge_", edge.snapshot_id)
+            if path is None:
+                logger.warning(f"Missing edge snapshot: {edge.snapshot_id}")
                 continue
             with open(path, "rb") as f:
                 snap = map_pb2.EdgeSnapshot()

@@ -1,0 +1,15 @@
+# Only what the web console actually imports.
+#
+# Not the project's full dependency set on purpose: ultralytics, openvino, open3d, vtk
+# and pyvista are the *local* detector and the desktop tooling, and several of them have
+# no aarch64 wheels at all. On the CoreIO the Jetson is the detector, so the console runs
+# with SPOT_LOCAL_MODEL=none and never imports any of them.
+bosdyn-client>=5.0.1.2
+flask>=3.1.2
+loguru>=0.7.0
+numpy>=2.0
+# Held to the 4.x line the project is developed and tested against on the laptop; the
+# container is not the place to find out what OpenCV 5 changed.
+opencv-python-headless>=4.11.0.86,<5
+paramiko>=3.5
+python-dotenv>=1.0.0

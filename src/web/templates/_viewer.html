@@ -1,0 +1,170 @@
+<!-- The display area. AI is a layer, not a tab: with it on, Hand and Body Cameras show the
+     segmentation over the live picture, and both are where objects are clicked to grasp. -->
+<section class="panel video">
+  <h2 class="panel-title">
+    <span id="view-title">Hand Camera</span>
+    <span class="rec"><i></i>LIVE</span>
+    <span class="stale" id="feed-stale" hidden></span>
+    <span class="spacer"></span>
+    <span class="tabs">
+      <button class="tab active" data-view="hand">Hand Camera</button>
+      <button class="tab" data-view="cameras">Body Cameras</button>
+      <button class="tab rs" data-view="rs_blend" hidden>Depth Camera</button>
+      <button class="tab" data-view="map">Map</button>
+      <button class="tab live" data-view="live" hidden>Live</button>
+      <button class="tab" data-view="recon">3D Recon</button>
+      <button class="tab" data-view="log">Log <b class="badge" id="log-badge" hidden></b></button>
+    </span>
+  </h2>
+
+  <div class="video-stage">
+    <div class="feed-wrap" id="feed-wrap">
+      <img id="feed" src="/video/hand" alt="Spot camera feed">
+      <!-- Drawn over Hand and Body Cameras: hover and selection outlines, and the click
+           target for choosing what to grasp. -->
+      <svg class="vision-overlay" id="vision-overlay" hidden></svg>
+    </div>
+
+    <div class="blend-bar" id="blend-bar" hidden>
+      <span>colour</span>
+      <input type="range" id="blend-alpha" min="0" max="100" value="50">
+      <span>depth</span>
+    </div>
+
+    <div class="choose-menu" id="choose-menu" hidden>
+      <div class="choose-name" id="choose-name">object</div>
+      <div class="choose-meta" id="choose-meta"></div>
+      <div class="choose-bins" id="choose-bins"></div>
+      <button class="ghost" id="choose-cancel">Cancel</button>
+    </div>
+
+    <div class="map-stage" id="map-stage" hidden>
+      <canvas id="map3d"></canvas>
+      <div class="map-labels" id="map-labels"></div>
+      <div class="map-empty" id="map-empty" hidden>
+        <b>Spot has no map loaded</b>
+        <span id="map-empty-note">A freshly started robot holds no GraphNav map. Missions that walk between
+          waypoints need one.</span>
+        <button class="go" id="map-load" hidden>Load map onto Spot</button>
+      </div>
+      <div class="map-menu" id="map-menu" hidden>
+        <div class="map-menu-name" id="map-menu-name">waypoint</div>
+        <button id="map-menu-go" class="go">Navigate here</button>
+        <button data-slot="pick">Set as pick point</button>
+        <button data-slot="bin_teddy_bear">Set as Teddy bear bin</button>
+        <button data-slot="bin_bottle">Set as Bottle bin</button>
+        <button data-slot="bin_other">Set as Other bin</button>
+        <button data-slot="home">Set as home point</button>
+        <button id="map-menu-patrol">Add to patrol</button>
+      </div>
+      <div class="map-bar">
+        <span class="map-key"><i class="wp"></i>waypoint</span>
+        <span class="map-key"><i class="fid"></i>fiducial</span>
+        <span class="map-key"><i class="edge"></i>edge</span>
+        <span id="map-source">loading the robot's map...</span>
+        <span class="spacer"></span>
+        <span id="map-status"></span>
+        <button class="ghost" id="map-frame">Fit</button>
+      </div>
+      <div class="map-help">drag to orbit · shift-drag to pan · scroll to zoom · click a waypoint</div>
+    </div>
+
+    <div class="map-stage" id="live-stage" hidden>
+      <canvas id="live3d"></canvas>
+      <div class="map-bar">
+        <span class="map-key"><i class="wp"></i>waypoint</span>
+        <span class="map-key"><i class="bot"></i>Spot</span>
+        <span id="live-source">connecting to the stitcher...</span>
+        <span class="spacer"></span>
+        <span id="live-status"></span>
+        <button class="ghost" id="live-follow" data-on="1">Follow</button>
+        <button class="ghost" id="live-localise" hidden>Localise</button>
+        <button class="ghost" id="live-clear">Clear</button>
+        <button class="ghost" id="live-frame">Fit</button>
+      </div>
+    </div>
+
+    <!-- Fused on this laptop from the hand camera, every body camera and the RealSense; the front weighs most. -->
+    <div class="map-stage" id="recon-stage" hidden>
+      <canvas id="recon3d"></canvas>
+      <div class="map-labels" id="recon-labels"></div>
+      <div class="recon-sources" id="recon-sources">
+        <label><input type="checkbox" data-source="hand" checked> Hand <em data-rate="hand"></em></label>
+        <label><input type="checkbox" data-source="front" checked> Front pair <em data-rate="front"></em></label>
+        <label title="Left, right and back cameras: slower, coarser, and outweighed by the front where they overlap"><input type="checkbox" data-source="sides" checked> Sides &amp; back <em data-rate="sides"></em></label>
+        <label><input type="checkbox" data-source="realsense" checked> RealSense <em data-rate="realsense"></em></label>
+      </div>
+      <div class="map-bar">
+        <span class="map-key"><i class="bot"></i>Spot</span>
+        <span id="recon-source">reconstructing on this machine</span>
+        <span class="spacer"></span>
+        <span id="recon-status"></span>
+        <button class="ghost" id="recon-calibrate" title="With Spot still, align the RealSense onto the front cameras and save the mount">Calibrate RealSense</button>
+        <button class="ghost" id="recon-follow" data-on="0">Follow</button>
+        <button class="ghost" id="recon-clear">Clear</button>
+        <button class="ghost" id="recon-frame">Fit</button>
+      </div>
+      <div class="map-help">drag to orbit · shift-drag to pan · scroll to zoom</div>
+    </div>
+
+    <div class="log-stage" id="log-stage" hidden>
+      <div class="log-bar">
+        <span class="filters">
+          <button class="filter active" data-filter="all">All</button>
+          <button class="filter" data-filter="task">Tasks</button>
+          <button class="filter" data-filter="warn">Warnings</button>
+        </span>
+        <span class="spacer"></span>
+        <button class="toggle" id="follow" data-on="1"><i></i>Follow</button>
+      </div>
+      <div class="log-scroll" id="log"></div>
+    </div>
+
+    <!-- The points window: opened by a mission that needs map points, dragged by its title,
+         hidden whenever the display switches away from the map. -->
+    <div class="setup" id="setup" hidden>
+      <div class="setup-head" id="setup-head">
+        <b id="setup-title">Mission</b>
+        <span class="spacer"></span>
+        <button class="ghost tiny" id="setup-close" title="Close">✕</button>
+      </div>
+      <div class="setup-body">
+        <p class="setup-note" id="setup-note">Choose each point below, or click a waypoint on the map.</p>
+        <div class="setup-fields" id="setup-fields"></div>
+        <div class="setup-error" id="setup-error"></div>
+        <button class="setup-start" id="setup-start">Start</button>
+      </div>
+    </div>
+
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+    <div class="depth-key" id="depth-key" hidden>
+      <span>0.3 m</span><span class="ramp"></span><span>6 m</span>
+      <span class="void"><i></i>no reading</span>
+    </div>
+    <div class="video-foot">
+      <span class="legend-title">colour = bin:</span>
+      <span class="legend"><i class="g-teddy_bear"></i>teddy bear</span>
+      <span class="legend"><i class="g-bottle"></i>bottle</span>
+      <span class="legend"><i class="g-other"></i>other</span>
+      <span class="legend"><i class="g-uncertain"></i>uncertain</span>
+      <span class="spacer"></span>
+      <span id="scene-note">AI idle</span>
+    </div>
+  </div>
+
+  <div class="depth-readout" id="depth-readout" hidden>
+    <b id="depth-value">—</b>
+    <span id="depth-note">click the picture to measure</span>
+  </div>
+  <div class="choose-bar" id="choose-bar" hidden>
+    <b>Choose what to grasp</b>
+    <span class="choose-from">from
+      <button class="ghost" data-choose-view="cameras">Body Cameras</button>
+      <button class="ghost" data-choose-view="hand">Hand Camera</button>
+    </span>
+    <span class="choose-list" id="choose-list"></span>
+    <span class="spacer"></span>
+    <button class="ghost" id="choose-rescan">Rescan</button>
+  </div>
+</section>

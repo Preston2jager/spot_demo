@@ -20,6 +20,22 @@ class SpotTracker:
     _REAL_PRINT = builtins.print
     _STACK: ClassVar[list["SpotTracker"]] = []
 
+    # Called with (event, name, duration) on every task boundary — "start", "done",
+    # "error". The web console subscribes so its log panel shows the same task timeline
+    # the terminal draws with its [[Running]]/[[Done]] lines, which are print() output
+    # and therefore invisible to a loguru sink. Empty by default: nothing about the
+    # terminal path changes when nobody is listening.
+    LISTENERS: ClassVar[list[Callable[[str, str, float], None]]] = []
+
+    @classmethod
+    def _notify(cls, event: str, name: str, duration: float = 0.0) -> None:
+        """Fan a task boundary out to the listeners, never letting one break a mission."""
+        for listener in cls.LISTENERS:
+            try:
+                listener(event, name, duration)
+            except Exception:  # a broken log panel must never stop the robot
+                pass
+
     def __init__(self, name: str, exit_on_fail: bool = False) -> None:
         """Store task name and whether an exception should propagate."""
         self.name = name
@@ -53,6 +69,7 @@ class SpotTracker:
             for tracker in self._STACK:
                 tracker.line_count += 1
         self._REAL_PRINT(f"{self.BOLD}{self.BLUE}[[Running]]{self.END} {self.name}")
+        self._notify("start", self.name)
         self._STACK.append(self)
         builtins.print = self._global_dispatch_print
         self.start_time = time.time()
@@ -70,6 +87,7 @@ class SpotTracker:
             self._STACK.pop()
         if not self._STACK:
             builtins.print = self._REAL_PRINT
+        self._notify("done" if exc_type is None else "error", self.name, duration)
         move_up = self.line_count + 1
         sys.stdout.write(f"\033[{move_up}A\r\033[K")
         if exc_type is None:
@@ -81,6 +99,12 @@ class SpotTracker:
             sys.stdout.write(f"{self.BOLD}{self.RED}[[Error]]{self.END} {self.name}\n")
             if self.line_count > 0:
                 sys.stdout.write(f"\033[{self.line_count}B")
+            # Only ordinary errors are swallowed. A stop from the operator arrives as
+            # KeyboardInterrupt (MissionStopped) raised inside the mission thread, and
+            # swallowing *that* is how a Stop used to land in `grasp_object`, get eaten
+            # here, and leave the mission carrying on as if nothing had been pressed.
+            if not issubclass(exc_type, Exception):
+                return False
             return not self.exit_on_fail
         if self.line_count > 0:
             sys.stdout.write(f"\033[{self.line_count}B")

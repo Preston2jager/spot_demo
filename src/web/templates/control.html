@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spot Control</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='console.css') }}">
+</head>
+<body class="role-control">
+<div class="backdrop" aria-hidden="true"></div>
+{% with title="Spot Autonomy — Control" %}{% include "_header.html" %}{% endwith %}
+
+<main class="layout">
+  <section class="panel commands">
+    <!-- Stop and the AI switch sit above the scrolling blocks and are never disabled: Stop
+         freezes the robot whether or not a mission is running, and must never need a scroll. -->
+    <div class="commands-head">
+      <button class="stop" id="stop" title="Freeze Spot where it is (Esc)">
+        STOP <small>hold position · Esc</small>
+      </button>
+      <button class="toggle ai-toggle" id="detect-toggle"
+              title="Segment and classify the Hand and Body Cameras views">
+        <i></i><span>AI vision</span><em id="detect-state">off</em>
+      </button>
+      <button class="toggle ai-toggle" id="surround-toggle"
+              title="Grasp surveys: on — every body camera and the hand; off — the front pair and the hand only">
+        <i></i><span>Surround vision</span><em id="surround-state">on</em>
+      </button>
+    </div>
+
+    <div class="commands-scroll">
+      {% for group in menu %}
+      <div class="block block-{{ group.group|lower }}">
+        <h2 class="block-name">{{ group.group }}</h2>
+        <div class="block-body">
+        {% for item in group['items'] %}
+          {% if item.kind == "teleop" %}
+          <button class="cmd cmd-teleop cmd-drive" data-mission="teleop" data-kind="teleop">
+            <span class="cmd-label">{{ item.label }}</span>
+            <span class="cmd-hint">{{ item.hint }}</span>
+            <span class="drive-keys" aria-hidden="true"><i>Q</i><i>W</i><i>E</i><i>A</i><i>S</i><i>D</i></span>
+          </button>
+          {% else %}
+          <button class="cmd{% if item.stance %} cmd-stance{% endif %}"
+                  data-mission="{{ item.id }}"
+                  {% if item.stance %}data-stance="{{ item.stance }}"{% endif %}
+                  {% if item.setup %}data-setup="{{ item.setup }}"{% endif %}
+                  data-label="{{ item.label }}"
+                  title="{{ item.hint }}">
+            <span class="cmd-label">{{ item.label }}</span>
+            <span class="cmd-hint">{{ item.hint }}</span>
+            {% if item.graphnav %}<span class="tag">map</span>{% endif %}
+          </button>
+          {% endif %}
+        {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="phase-line" id="phase-line"></div>
+  </section>
+
+  {% include "_viewer.html" %}
+</main>
+
+<div class="teleop-hud" id="teleop-hud" hidden>
+  <div class="keys">
+    <kbd data-key="q">Q</kbd><kbd data-key="w">W</kbd><kbd data-key="e">E</kbd>
+    <kbd data-key="a">A</kbd><kbd data-key="s">S</kbd><kbd data-key="d">D</kbd>
+  </div>
+  <span>Hold to drive · release to stop · <b>Esc</b> releases teleop</span>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='map3d.js') }}"></script>
+<script src="{{ url_for('static', filename='common.js') }}"></script>
+<script src="{{ url_for('static', filename='viewer.js') }}"></script>
+<script src="{{ url_for('static', filename='control.js') }}"></script>
+</body>
+</html>

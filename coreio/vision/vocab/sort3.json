@@ -1,0 +1,73 @@
+{
+  "name": "sort3",
+  "description": "Three-way sorting demo: teddy bears, bottles, everything else — each with a grip material.",
+
+  "_comment_groups": [
+    "Every prompt belongs to exactly one group. The classifier stage reports the group, so the",
+    "sorting mission picks a bin from `group` and never has to know the vocabulary.",
+    "`teddy_bear` and `bottle` are the two named bins; `other` is the third bin and also the",
+    "fallback for anything the segmenter found that no prompt claims.",
+    "",
+    "`ignore` exists so the model has somewhere correct to put people, the robot and the",
+    "furniture. Those objects are dropped before replying — without them the argmax has to land",
+    "on *some* label, and a bystander's foot comes back as a pickable 'shoe'.",
+    "",
+    "Cans and cartons are deliberately in `other`: the demo's second bin is bottles, and a can",
+    "that lands there reads as a mistake to an audience."
+  ],
+  "fallback_group": "other",
+  "ignore_groups": ["ignore"],
+  "groups": {
+    "ignore": [
+      "person", "human face", "human hand", "human leg", "robot", "robot dog", "robotic arm",
+      "table", "chair", "floor", "wall", "door", "window", "storage bin", "cardboard tray",
+      "carpet", "shelf"
+    ],
+    "teddy_bear": [
+      "teddy bear", "stuffed animal", "plush toy", "stuffed bear", "soft toy"
+    ],
+    "bottle": [
+      "bottle", "water bottle", "plastic bottle", "glass bottle", "milk bottle", "wine bottle",
+      "sports drink bottle"
+    ],
+    "other": [
+      "soda can", "drink can", "juice box", "milk carton",
+      "cardboard box", "package", "container", "plastic bag", "paper bag", "snack bag",
+      "bag of chips", "candy bar", "cereal box", "instant noodle cup", "tin can", "glass jar",
+      "tube of toothpaste", "bar of soap", "roll of toilet paper", "tissue box", "sponge",
+      "apple", "banana", "orange", "lemon", "tomato", "potato", "carrot", "egg", "bread loaf",
+      "mug", "cup", "drinking glass", "bowl", "plate", "spoon", "fork",
+      "book", "notebook", "pen", "scissors", "roll of tape", "stapler",
+      "mobile phone", "remote control", "computer mouse", "keyboard", "headphones", "power bank",
+      "wallet", "keys", "sunglasses", "hat", "glove", "shoe", "backpack",
+      "ball", "tennis ball", "toy car", "rubiks cube", "toy block", "light bulb",
+      "screwdriver", "hammer", "wrench", "tape measure", "doll"
+    ]
+  },
+
+  "_comment_materials": [
+    "Grip material, three levels, and what it decides is how hard the gripper squeezes once",
+    "the object is held — not what the object is made of in a physics sense. So an egg and a",
+    "light bulb are `soft`: rigid, but they must be held gently. `hard` is for things that are",
+    "both rigid and robust. Anything unlisted takes its group's default."
+  ],
+  "material_defaults": {
+    "teddy_bear": "soft",
+    "bottle": "medium",
+    "other": "medium",
+    "ignore": "medium"
+  },
+  "materials": {
+    "soft": [
+      "plastic bag", "paper bag", "snack bag", "bag of chips", "sponge", "roll of toilet paper",
+      "bread loaf", "banana", "tomato", "egg", "hat", "glove", "light bulb", "tennis ball",
+      "doll", "milk carton", "juice box", "instant noodle cup", "tissue box"
+    ],
+    "hard": [
+      "glass bottle", "wine bottle", "tin can", "glass jar", "mug", "drinking glass", "bowl",
+      "plate", "spoon", "fork", "mobile phone", "remote control", "computer mouse", "power bank",
+      "keys", "toy car", "rubiks cube", "toy block", "screwdriver", "hammer", "wrench",
+      "tape measure", "stapler", "scissors", "apple", "potato", "book"
+    ]
+  }
+}

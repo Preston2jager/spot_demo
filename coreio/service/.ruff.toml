@@ -1,0 +1,7 @@
+# Everything in this directory ships to the robot and runs inside the yolo:latest
+# container on the CoreIO, which has Python 3.8 — not the 3.12 the rest of the project
+# targets. Pinning the version keeps ruff's upgrade rules from rewriting this code into
+# syntax the robot cannot parse. The deployer one level up runs here, on 3.12, and is
+# deliberately outside this scope.
+extend = "../../pyproject.toml"
+target-version = "py38"

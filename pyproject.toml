@@ -1,40 +1,25 @@
 [project]
 name = "demo-polyu"
 version = "0.1.0"
-description = "Add your description here"
+description = "Boston Dynamics Spot control console — RMIT Centre for Future Construction"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "bosdyn-choreography-client>=5.0.1.2",
     "bosdyn-client>=5.0.1.2",
-    "bosdyn-mission>=5.0.1.2",
-    "bosdyn-orbit>=5.0.1.2",
-    "datasets>=4.5.0",
-    "ffmpeg>=1.4",
     "flask>=3.1.2",
     "loguru>=0.7.0",
     "python-dotenv>=1.0.0",
-    "questionary>=2.0.0",
     "numpy>=2.3.4",
-    "open3d>=0.19.0",
     "opencv-python>=4.11.0.86",
-    "openvino>=2026.0.0",
-    "pynput>=1.8.1",
-    "pyvista[trame]>=0.47.1",
-    "trame>=3.0.0",
-    "trame-vtk>=2.11.1",
-    "trame-vuetify>=3.2.1",
-    "ultralytics>=8.3.225",
-    "vtk>=9.5.2",
-    "mcp>=1.27.0",
+    "paramiko>=3.5",
 ]
 
 [tool.ruff]
 target-version = "py312"
 line-length = 120
-# Archive/ 是废弃实验代码，src/ref/ 是 Boston Dynamics 示例的逐字拷贝，
-# runtime/ 只有数据和日志 —— 三者都不参与 lint。
-extend-exclude = ["Archive", "src/ref", "runtime"]
+# src/ref/ 是 Boston Dynamics 示例的逐字拷贝，
+# runtime/ 只有数据和日志 —— 两者都不参与 lint。
+extend-exclude = ["src/ref", "runtime"]
 
 [tool.ruff.lint]
 ignore = [

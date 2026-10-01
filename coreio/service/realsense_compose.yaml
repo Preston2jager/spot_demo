@@ -1,0 +1,59 @@
+# spot_realsense — the console's RealSense bridge (colour, depth, distance probes on 8782).
+#
+# Written to /data/stacks/spot-realsense/compose.yaml by coreio/deploy_realsense.py, with
+# realsense_server.py next to it in ./app, so Dockge starts, stops and shows it alongside
+# realsense-ros2 and spot-vision. Start realsense-ros2 as well: this only subscribes to the
+# topics that node publishes, it never opens the camera.
+#
+# Binds CoreIO-localhost only. Spot forwards just 20022 and 21443 off the CoreIO, so the
+# console reaches it through an SSH channel.
+#
+# What has to match the camera node, or it silently discovers nothing and reports
+# "waiting" forever: --network host, ROS_DOMAIN_ID, RMW_IMPLEMENTATION, and the DDS
+# configuration itself. realsense-ros2 runs on Cyclone's defaults, so this does too. If
+# someone gives the camera a CYCLONEDDS_URI (interface pinned, port base moved), copy the
+# same value into this environment and redeploy.
+#
+# privileged is for the socket buffers. Cyclone sends a frame as hundreds of fragments and
+# the CoreIO's default 208 KB socket cannot hold the reassembly window: the bridge gets a
+# frame or two and then never completes another, while /health still reads "present". A
+# socket takes its size when it is created, so the sysctl runs in the same command that
+# starts the server; Docker mounts /proc/sys read-only without privileged, and refuses
+# `sysctls:` under host networking. / is read-only squashfs, so there is no sysctl.d.
+#
+# restart: "no" like every other stack here — Dockge starts it.
+services:
+  spot_realsense:
+    image: realsense-coreio:v1
+    container_name: spot_realsense
+    restart: "no"
+    network_mode: host
+    privileged: true
+
+    environment:
+      ROS_DOMAIN_ID: "30"
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+      ROS_LOCALHOST_ONLY: "0"
+      RS_HOST: 127.0.0.1
+      RS_PORT: "8782"
+      # Display range in metres and the mounting rotation. Tunable here: edit in Dockge,
+      # then "Deploy".
+      RS_NEAR_M: "0.3"
+      RS_FAR_M: "6.0"
+      RS_ROTATE: "180"
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+
+    volumes:
+      - ./app:/app:ro
+
+    command:
+      - bash
+      - -lc
+      - |
+        sysctl -qw net.core.rmem_max=8388608 net.core.rmem_default=8388608 \
+                   net.core.wmem_max=8388608 net.core.wmem_default=8388608 \
+          || echo "[realsense] WARNING: could not raise socket buffers — frames will freeze after the first"
+        source /opt/ros/humble/setup.bash && exec python3 /app/realsense_server.py
