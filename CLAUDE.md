@@ -46,7 +46,7 @@ directory so their `import graph_nav_util` resolves.
 | File | Class | Role |
 |------|-------|------|
 | `spot_agent.py` | `SpotAgent`, `MissionStopped` | Auth, lease, the stop latch, posture, arm/grasp primitives, navigation, speaker |
-| `spot_grasp.py` | `GraspPlanner` | Approach → line up (0.5 s servo) → grasp → grip by material |
+| `spot_grasp.py` | `GraspPlanner` | Approach → line up (1.0 s servo) → grasp → grip by material |
 | `missions.py` | `run_*`, `SortHooks`, `SortPoints` | Mission handlers, including `run_sort_loop` |
 | `vision.py` | `Vision`, `VisionClient`, `Scene`, `SceneObject` | CoreIO vision client, scans, camera geometry |
 | `vision_view.py` | `Panorama`, `highlight` | Grey-scene/colour-object rendering; the body cameras as a 2×2 grid |
@@ -154,7 +154,7 @@ mounts, the actual roll for the hand) and the replies are turned back (`_turn_ba
 arm projects (`_arm_points`).
 
 Measured with the ROS 2 stack running on the CoreIO: surround (5 cameras) ~1.7 s, hand
-segment-only ~0.4 s. The bottleneck is the CoreIO's CPU.
+segment-only ~0.4 s (with the `s` segmenter). The bottleneck is the CoreIO's CPU.
 
 ### The sorting demo
 
@@ -169,12 +169,28 @@ forget the track, walk to the group's bin, `drop_in_bin()`, repeat.
 the shared `Vision` as `vision.tracker`). Every classified scan (preview or mission; not the
 servo's `classified=False` scans) places each detection in the vision frame with `locate()` and
 merges it into a track within `TRACK_RADIUS_M`; one scan may add one detection per camera to a
-track (the front pair overlap). Seen in `TRACK_MIN_SCANS` scans, or once at `TRACK_SURE_CONF` →
+track (the front pair overlap); beyond `TRACK_MERGE_M` (12 cm) only if the track projects onto its
+box. **Piles**: per pair of nearby tracks the cameras vote *apart* (one camera outlined both in one
+scan) or *together* (one outline covers the other's position at its depth); tracks within
+`TRACK_MERGE_M` merge into the older id only when together outvotes apart and they are not certainly
+different bins (`get()` follows merged ids). The grasp servo's `_find` prefers the hand outline the
+target projects inside over the nearest grasp point. Seen in `TRACK_MIN_SCANS` scans, or once at `TRACK_SURE_CONF` →
 registered. Only classification evidence votes on what a track is: an unclaimed mask (`other`,
 uncertain, label = segmenter's) adds position and a hit plus its below-threshold `scores`, never an
 Other vote — so a bear recognised once stays a bear. `candidates()` gives the best ten (classified,
 certain, confidence, then hits) seen since `TRACK_RECENT_SEC` before the survey. Tracks expire
-after `TRACK_TTL_SEC`.
+after `TRACK_TTL_SEC` — or sooner when gone: a classified scan that should have seen a track (well
+inside a frame, within `TRACK_GONE_RANGE_M` 2.5 m, depth there not nearer than it) and did not is a
+miss; `TRACK_GONE_SCANS` (3) misses over `TRACK_GONE_SEC` (2 s), no sighting between, deletes it.
+
+**Looking closer** (`missions.look_closer`, end of every `survey()`, so both sorting and grasp-here):
+when `LOOK_MIN` (2) or more tracks a prompt claimed for teddy_bear/bottle (sure or uncertain,
+registered or not) were seen in the last `LOOK_WINDOW_SEC` (15 s), within `LOOK_RANGE_M` and
+`LOOK_HALF_DEG` of ahead, the hand gazes at each (best `LOOK_MAX`, swept by bearing), waits for
+`wait_hand_still()`, and takes one classified hand scan with depth. `ObjectTracker.confirm` scores
+it: a recognised sighting votes `TRACK_LOOK_WEIGHT` (3×) and adds its conf to `look_score`;
+nothing there in clear view is −1. `candidates()` ranks a negative `look_score` last and a
+hand-confirmed track ahead of equally certain unchecked ones. Then `arm_ready()`.
 
 **Display names are the AI's own class** (`SceneObject.label`); the three bins (`group`) are only
 the colour and what the sorting does with it.
@@ -194,11 +210,13 @@ the colour and what the sorting does with it.
 
 **`GraspPlanner` (1.6)**: `locate()` the object in the vision frame from the pixel and the depth
 behind its mask (ground-plane ray fallback); walk to a standoff (`SORT_STANDOFF_M`); then every
-`SORT_SERVO_PERIOD` (0.5 s): gaze the hand at the estimate, segment-only hand scan, re-identify the
+`SORT_SERVO_PERIOD` (1.0 s): gaze the hand at the estimate, segment-only hand scan, re-identify the
 target by projected position (not by label — labels flicker), blend in the new depth measurement,
 and `step_towards()` a short-lived SE2 goal with the gaze synchronized. Two consecutive checks
-within `SORT_RANGE_TOL_M` / `SORT_YAW_TOL_DEG` → `grasp_in_image(auto_walk=False)`; one retry with
-auto-walk if that finds no solution. Then `set_grip(material)` re-closes at `GRIP_TORQUE_*`
+within `SORT_RANGE_TOL_M` / `SORT_YAW_TOL_DEG` → `grasp_in_image(auto_walk=False)`. A missed grasp
+(or a target lost while lining up) backs straight away from the object, still facing it, to
+`GRASP_RANGE` + n×`SORT_BACKOFF_M` (0.35 m) and goes round the servo and grasp again —
+`SORT_GRASP_RETRIES` (2) times; only the last try may fall back to auto-walk. Then `set_grip(material)` re-closes at `GRIP_TORQUE_*`
 (the manipulation API grasp has no force setting) and `carry()`.
 
 **Grasp here — no map** (`run_grasp_here`, menu `grab_confirm` / `grab_auto`): `survey()`,
@@ -257,11 +275,14 @@ offset back to the guess, leaving a "shell" in front of objects; it is refused w
 Full 6-DoF ICP re-tilted it, because the front stereo is noisier than the RealSense's floor.
 Depth edges are dropped, points weighted 1/range² and fused into `VoxelMap` (sorted int64 keys,
 weighted centroids and colours); voxels hit fewer than `RECON_MIN_HITS` times are not sent. Free space is carved
-(`VoxelMap.carve`, its own thread every 0.4 s): a voxel that depth frames keep seeing *through*
-(measured surface farther by 5 cm + 3 cm·z²), with no hit in between, for `RECON_CARVE_SEC` (2 s) is
-deleted — someone who walks away is gone in ~2–3 s; occluded voxels are never carved.
+(`VoxelMap.carve`, its own thread every 0.3 s, using each camera's latest frame): a voxel that depth frames keep seeing *through*
+(measured surface farther by 5 cm + 3 cm·z²), with no hit in between, for `RECON_CARVE_SEC` (1 s) is
+deleted — someone who walks away is gone in ~1–2 s; occluded voxels are never carved. A pixel with no reading
+counts as seen through too, within the camera's fusion range, when that pixel normally measures (`_Coverage`:
+share of frames with a reading, rising fast, falling over ~35 frames) and the 7×7 around it read nothing —
+so open space where something stood clears, while what only the stereo dead zones see is kept.
 Nothing runs on the CoreIO beyond serving frames. With AI on, `/api/recon/status` adds `objects`
-(the registered tracks, same vision frame) and the page pins a label on each; while the tab is open
+(the registered tracks — up to `RECON_LABELS`, 40, not the chooser's ten — same vision frame) and the page pins a label on each; while the tab is open
 the preview scans `survey_sources()` with depth instead of the camera views.
 
 **One mission at a time**; a dispatch while something runs is refused. A handler returning

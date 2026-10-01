@@ -55,6 +55,9 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _SELECTION_FILE = _PROJECT_ROOT / "runtime" / "web_selection.json"
 _RS_REPROBE_SEC = 30.0
 _VISION_REPROBE_SEC = 20.0
+# How many registered objects the 3D Recon view labels. More than a chooser offers (ten):
+# with surround vision the front camera's objects would otherwise take every label.
+_RECON_LABELS = int(os.getenv("RECON_LABELS", "40"))
 
 STANCE_STAND = "stand"
 STANCE_SIT = "sit"
@@ -567,7 +570,7 @@ class SpotWebConsole:
             status = self.recon.status()
             # With AI on, the registered objects, to label in the reconstruction — they and
             # the cloud are both in Spot's vision frame.
-            status["objects"] = [_recon_label(track) for track in self.vision.tracker.candidates()] \
+            status["objects"] = [_recon_label(track) for track in self.vision.tracker.candidates(limit=_RECON_LABELS)] \
                 if self.view.detecting else []
             return jsonify(status)
 

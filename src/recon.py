@@ -43,8 +43,12 @@ between a foreground edge and the background — are dropped before fusion.
 **What leaves, leaves the map** (`VoxelMap.carve`). Every depth frame is also a statement
 about empty space: a voxel that projects into it nearer than the surface it measured there
 is seen *through*. A voxel seen through again and again, and not hit once, for
-``RECON_CARVE_SEC`` (2 s) is deleted — so a person who stood in front of Spot and walked
-away is gone a couple of seconds later, and the wall behind them fills back in. Occluded
+``RECON_CARVE_SEC`` (1 s) is deleted — so a person who stood in front of Spot and walked
+away is gone a second or two later, and the wall behind them fills back in. A pixel with
+*no* reading says the same when that pixel normally does measure (`_Coverage`) and nothing
+was read anywhere around it: what stood there is gone and open space, out of range, is
+behind it. Pixels that rarely measure — outside the stereo overlap, the hand's short-range
+ToF — say nothing, so what only they look at is kept, as is anything out of view. Occluded
 voxels are never carved (the person in front of the wall measures nearer than the wall),
 the margin grows with range as stereo noise does, and one stray reading cannot do it: any
 hit in between resets the clock.
@@ -82,14 +86,24 @@ _SIDE_PERIOD = float(os.getenv("RECON_SIDE_PERIOD", "1.0"))
 _MIN_HITS = int(os.getenv("RECON_MIN_HITS", "2"))
 _MAX_VOXELS = int(os.getenv("RECON_MAX_VOXELS", "1500000"))
 # Seen through, and not hit, for this long → deleted. 0 turns carving off.
-_CARVE_SEC = float(os.getenv("RECON_CARVE_SEC", "2.0"))
+_CARVE_SEC = float(os.getenv("RECON_CARVE_SEC", "1.0"))
+# Two look-throughs further apart than this do not add up: the clock starts again. Longer
+# than the carve time, since the slower cameras look less than once a second.
+_CARVE_GAP = max(_CARVE_SEC, 3.0)
 # How much farther than a voxel the measured surface must be for the voxel to count as seen
 # through: a fixed part plus one growing with range², as stereo error does.
 _CARVE_MARGIN = 0.05
-_CARVE_PERIOD = 0.4
-# At most this many frames per carving pass: the newest, which say most about now.
-_CARVE_BACKLOG = 6
+_CARVE_PERIOD = 0.3
 _CARVE_MARGIN_SQ = 0.03
+# A pixel whose running share of frames with a reading is at least this normally measures,
+# so no reading there means nothing within range. The share rises fast and falls slowly
+# (~35 frames to drop below): open space where something stood would otherwise teach the
+# camera, within a few frames, that it cannot measure there — and the ghost would stay.
+_COVERED = 0.5
+_COVERAGE_RISE = 0.3
+_COVERAGE_FALL = 0.02
+# No reading within this many pixels of a voxel's either: one hole in a surface is not open space.
+_EMPTY_KERNEL = np.ones((7, 7), np.uint8)
 _SEND_POINTS = int(os.getenv("RECON_SEND_POINTS", "600000"))
 _RS_STEP = int(os.getenv("RECON_RS_STEP", "2"))
 # A depth pixel whose 3×3 neighbourhood spans more than this fraction of its own range
@@ -355,13 +369,15 @@ class VoxelMap:
                 self._keys, self._acc = self._keys[keep], self._acc[keep]
             self.seq += 1
 
-    def carve(self, views: list[tuple[np.ndarray, tuple[float, float, float, float], np.ndarray]]) -> int:
+    def carve(self, views: list[tuple]) -> int:
         """Delete the voxels these depth frames have kept seeing through. Returns how many.
 
-        ``views`` are (depth in metres, intrinsics fx fy cx cy, world_T_camera). Each voxel's
-        centroid is projected into each frame; where the frame measured a surface farther
-        than the voxel by more than the margin, and not on a depth edge, the voxel is seen
-        through. Computed on a snapshot, then applied by key, so fusion is not held up.
+        ``views`` are (depth in metres, intrinsics fx fy cx cy, world_T_camera, reach in
+        metres, measurable pixels or None). Each voxel's centroid is projected into each
+        frame; where the frame measured a surface farther than the voxel by more than the
+        margin, and not on a depth edge — or, within ``reach``, measured nothing around a
+        pixel that normally measures — the voxel is seen through. Computed on a snapshot,
+        then applied by key, so fusion is not held up.
         """
         if _CARVE_SEC <= 0 or not views:
             return 0
@@ -372,35 +388,41 @@ class VoxelMap:
         index = np.stack(((keys >> 42) & _MASK, (keys >> 21) & _MASK, keys & _MASK), axis=1) - _OFFSET
         centroids = (index * self.voxel + acc[:, 0:3] / acc[:, 6:7]).astype(np.float32)
         through = np.zeros(len(keys), bool)
-        for depth, (fx, fy, cx, cy), world_T_camera in views:
+        for depth, (fx, fy, cx, cy), world_T_camera, reach, measurable in views:
             rotation = world_T_camera[:3, :3].astype(np.float32)
-            origin = world_T_camera[:3, 3].astype(np.float32)
+            shift = world_T_camera[:3, 3].astype(np.float32) @ rotation
             # Range along the optical axis first — one column — so only what is in front of
             # the camera and within range is projected at all.
-            z = (centroids - origin) @ rotation[:, 2]
+            z = centroids @ rotation[:, 2] - shift[2]
             ahead = np.nonzero((z > _NEAR) & (z < _FAR))[0]
             if len(ahead) == 0:
                 continue
-            relative = centroids[ahead] - origin
+            camera = centroids[ahead] @ rotation[:, :2] - shift[:2]
             z = z[ahead]
-            u = np.rint(relative @ rotation[:, 0] / z * fx + cx).astype(np.int32)
-            v = np.rint(relative @ rotation[:, 1] / z * fy + cy).astype(np.int32)
+            u = np.rint(camera[:, 0] / z * fx + cx).astype(np.int32)
+            v = np.rint(camera[:, 1] / z * fy + cy).astype(np.int32)
             height, width = depth.shape[:2]
             inside = (u >= 0) & (u < width) & (v >= 0) & (v < height)
             ahead, u, v, z = ahead[inside], u[inside], v[inside], z[inside]
-            measured = _carving_depth(depth)[v, u]
-            through[ahead[measured > z + _CARVE_MARGIN + _CARVE_MARGIN_SQ * z * z]] = True
+            measured = _carving_depth(depth, measurable)[v, u]
+            beyond = measured > z + _CARVE_MARGIN + _CARVE_MARGIN_SQ * z * z
+            # Nothing read (inf) only counts within the range the camera reliably reaches.
+            beyond &= np.isfinite(measured) | (z < reach)
+            through[ahead[beyond]] = True
         if not through.any():
             return 0
         now = time.monotonic() - self._epoch
         candidates = keys[through]
         with self._lock:
+            # Both sorted, so a candidate still in the map sits exactly where it would be
+            # inserted — no set lookup (np.isin over a million keys took most of a second).
             pos = np.searchsorted(self._keys, candidates)
-            pos = pos[pos < len(self._keys)]
-            pos = pos[np.isin(self._keys[pos], candidates)]  # still there, not merged away
+            inside = pos < len(self._keys)
+            pos, candidates = pos[inside], candidates[inside]
+            pos = pos[self._keys[pos] == candidates]  # still there, not merged away
             first, last = self._acc[pos, _SEEN_THROUGH], self._acc[pos, _SEEN_THROUGH + 1]
-            # A gap longer than the carve time since the last look-through starts the clock again.
-            restart = (first < 0) | (now - last > _CARVE_SEC)
+            # A long gap since the last look-through starts the clock again.
+            restart = (first < 0) | (now - last > _CARVE_GAP)
             self._acc[pos[restart], _SEEN_THROUGH] = now
             self._acc[pos, _SEEN_THROUGH + 1] = now
             gone = pos[~restart & (now - first >= _CARVE_SEC)]
@@ -446,10 +468,12 @@ class Reconstructor:
         self._robot: dict | None = None
         self._rs_mount = _mount()
         self._packed: tuple[int, bytes] = (-1, b"")
-        # Depth frames waiting to be carved with, per map — only the latest per camera pose
-        # matters, so the capture loops never wait on carving.
-        self._carving: dict[int, list] = {}
+        # Depth frames waiting to be carved with, per map and camera — only each camera's
+        # latest matters, so the capture loops never wait on carving and no camera's frames
+        # crowd out another's.
+        self._carving: dict[int, dict[str, tuple]] = {}
         self._carving_lock = threading.Lock()
+        self._coverage: dict[str, _Coverage] = {}
 
     # ── control ───────────────────────────────────────────────────────────────
 
@@ -534,10 +558,11 @@ class Reconstructor:
                         points, rgb, weight = points[keep], rgb[keep], weight[keep]
                     weight = weight * gain
                     self.map.fuse(points, rgb, weight)
+                    view = (frame.depth, intrinsics, pose, far, self._measurable(name, frame.depth))
                     if reference:
                         self.reference.fuse(points, rgb, weight)
-                        reference_carving.append((frame.depth, intrinsics, pose))
-                    carving.append((frame.depth, intrinsics, pose))
+                        reference_carving.append((name, view))
+                    carving.append((name, view))
                 self._to_carve(self.map, carving)
                 self._to_carve(self.reference, reference_carving)
                 if frames:
@@ -554,12 +579,17 @@ class Reconstructor:
                 continue
             time.sleep(max(0.0, period - (time.time() - started)))
 
-    def _to_carve(self, voxels: VoxelMap, views: list) -> None:
+    def _to_carve(self, voxels: VoxelMap, views: list[tuple[str, tuple]]) -> None:
+        """Queue (camera, view) pairs; a camera's newer frame replaces its older one."""
         if views and _CARVE_SEC > 0:
             with self._carving_lock:
-                pending = self._carving.setdefault(id(voxels), [])
-                pending.extend(views)
-                del pending[:-_CARVE_BACKLOG]
+                self._carving.setdefault(id(voxels), {}).update(views)
+
+    def _measurable(self, camera: str, depth: np.ndarray) -> np.ndarray:
+        coverage = self._coverage.get(camera)
+        if coverage is None or coverage.share.shape != depth.shape[:2]:
+            coverage = self._coverage[camera] = _Coverage(depth.shape[:2])
+        return coverage.update(depth)
 
     def _carve_loop(self) -> None:
         """Clear what has left the scene, a few times a second, off the capture threads."""
@@ -567,9 +597,9 @@ class Reconstructor:
             started = time.time()
             for voxels in (self.map, self.reference):
                 with self._carving_lock:
-                    views = self._carving.pop(id(voxels), [])
+                    views = self._carving.pop(id(voxels), {})
                 try:
-                    voxels.carve(views)
+                    voxels.carve(list(views.values()))
                 except Exception as exc:
                     logger.debug(f"Recon: carving failed: {exc}")
             time.sleep(max(0.05, _CARVE_PERIOD - (time.time() - started)))
@@ -599,7 +629,8 @@ class Reconstructor:
                 world = get_a_tform_b(snapshot, VISION_FRAME_NAME, BODY_FRAME_NAME).to_matrix() @ self._rs_mount
                 intrinsics = (frame["fx"], frame["fy"], frame["cx"], frame["cy"])
                 self.map.fuse(*backproject(frame["depth"], frame["color"], intrinsics, world, _FAR))
-                self._to_carve(self.map, [(frame["depth"], intrinsics, world)])
+                measurable = self._measurable("realsense", frame["depth"])
+                self._to_carve(self.map, [("realsense", (frame["depth"], intrinsics, world, _FAR, measurable))])
                 self._rates["realsense"] = 1.0 / max(time.time() - started, 1e-3)
                 self._notes["realsense"] = ""
             except Exception as exc:
@@ -698,14 +729,32 @@ class Reconstructor:
         return ""
 
 
-def _carving_depth(depth: np.ndarray) -> np.ndarray:
-    """Depth for deciding what is seen through: the nearest reading in each 3×3, with no
-    reading and depth edges as 0, so neither a hole nor a flying pixel carves anything."""
+def _carving_depth(depth: np.ndarray, measurable: np.ndarray | None) -> np.ndarray:
+    """Depth for deciding what is seen through: the nearest reading in each 3×3, depth edges
+    as 0 so a flying pixel carves nothing — and no reading as inf (nothing there) where the
+    pixel normally measures and nothing was read in the 7×7 around it, else 0 (unknown)."""
     filled = np.where(depth > 0, depth, np.inf).astype(np.float32)
     nearest = cv2.erode(filled, _KERNEL)
     spread = cv2.dilate(depth, _KERNEL) - nearest
-    nearest[~np.isfinite(nearest) | (spread > _EDGE * nearest)] = 0.0
+    nearest[np.isfinite(nearest) & (spread > _EDGE * nearest)] = 0.0
+    hole = ~np.isfinite(nearest)
+    if measurable is None:
+        nearest[hole] = 0.0
+    else:
+        nearest[hole & ~(measurable & ~np.isfinite(cv2.erode(filled, _EMPTY_KERNEL)))] = 0.0
     return nearest
+
+
+class _Coverage:
+    """Which of one camera's pixels normally return depth: a running mean of having a reading."""
+
+    def __init__(self, shape: tuple[int, int]) -> None:
+        self.share = np.zeros(shape, np.float32)
+
+    def update(self, depth: np.ndarray) -> np.ndarray:
+        valid = (depth > 0).astype(np.float32)
+        self.share += np.where(valid > 0, _COVERAGE_RISE, _COVERAGE_FALL) * (valid - self.share)
+        return self.share >= _COVERED
 
 
 # The accumulator's columns: 0-2 offset, 3-5 colour, 6 weight, 7 hits; then, for carving,

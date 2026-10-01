@@ -559,17 +559,36 @@ class SpotAgent:
         return math.dist((hand.x, hand.y, hand.z), _READY_HAND) < 0.04 and turned < math.radians(8.0)
 
     def gaze_at(self, x: float, y: float, z: float, open_gripper: bool = True) -> None:
-        """Point the hand camera at a point in the vision frame — untracked, called twice a second."""
+        """Point the hand camera at a point in the vision frame — untracked, called every servo step."""
         gaze = RobotCommandBuilder.arm_gaze_command(x, y, z, VISION_FRAME_NAME)
         if open_gripper:
             gaze = RobotCommandBuilder.claw_gripper_open_command(build_on_command=gaze)
         self._command(gaze)
 
+    def wait_hand_still(self, timeout_sec: float = 2.5, metres: float = 0.005, degrees: float = 1.0) -> bool:
+        """Wait until the hand has stopped moving (after a gaze), so its camera is not blurred."""
+        last = None
+        deadline = time.time() + timeout_sec
+        time.sleep(0.3)  # let the command start the motion before judging stillness
+        while time.time() < deadline:
+            self.check_halt()
+            state = self.state_client.get_robot_state()  # type: ignore[union-attr]
+            hand = get_a_tform_b(state.kinematic_state.transforms_snapshot, VISION_FRAME_NAME, HAND_FRAME_NAME)
+            if last is not None:
+                q, p = hand.rotation, last.rotation
+                turned = 2.0 * math.acos(min(1.0, abs(q.w * p.w + q.x * p.x + q.y * p.y + q.z * p.z)))
+                if math.dist((hand.x, hand.y, hand.z), (last.x, last.y, last.z)) < metres \
+                        and turned < math.radians(degrees):
+                    return True
+            last = hand
+            time.sleep(0.1)
+        return False
+
     def step_towards(self, x: float, y: float, heading: float, gaze: tuple | None = None,
                      duration_sec: float = 2.0) -> None:
         """Start walking to an SE2 pose in the vision frame without waiting to arrive.
 
-        The approach servo re-plans every half second, so each step is a short-lived goal:
+        The approach servo re-plans every servo period (about a second), so each step is a short-lived goal:
         if the next correction never comes the walk simply ends where it was going. The gaze
         rides in the same synchronized command so the hand keeps looking at the target while
         the body turns under it.

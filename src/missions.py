@@ -23,7 +23,16 @@ from loguru import logger
 from .spot_agent import MissionStopped, SpotAgent
 from .spot_grasp import GraspPlanner
 from .tracker import Track, distance_to
-from .vision import GROUPS, CoreIOUnavailable, Scene, SceneObject, Vision, bearing_and_distance, survey_sources
+from .vision import (
+    GROUPS,
+    HAND,
+    CoreIOUnavailable,
+    Scene,
+    SceneObject,
+    Vision,
+    bearing_and_distance,
+    survey_sources,
+)
 
 
 def safety_fallback(func):
@@ -134,6 +143,19 @@ SURVEY_SCANS = int(os.getenv("SURVEY_SCANS", "3"))
 FRONT_HALF_ANGLE = math.radians(float(os.getenv("VISION_FRONT_HALF_DEG", "60")))
 
 
+# Looking closer: when at least LOOK_MIN objects recognised as a sortable class (a match, sure
+# or not) were seen in the last LOOK_WINDOW_SEC, the hand is turned onto each in turn — up to
+# LOOK_MAX, within LOOK_RANGE_M and LOOK_HALF_DEG of ahead — and what it sees there is scored
+# (`ObjectTracker.confirm`) before anything is chosen.
+LOOK_WINDOW = float(os.getenv("LOOK_WINDOW_SEC", "15"))
+LOOK_MIN = int(os.getenv("LOOK_MIN", "2"))
+LOOK_MAX = int(os.getenv("LOOK_MAX", "4"))
+LOOK_RANGE = float(os.getenv("LOOK_RANGE_M", "3.0"))
+LOOK_HALF_ANGLE = math.radians(float(os.getenv("LOOK_HALF_DEG", "90")))
+# The bins worth a closer look: everything but Other.
+LOOK_GROUPS = tuple(g for g in GROUPS if g != "other")
+
+
 @dataclass
 class Survey:
     """A few scans from where Spot stands, and the registered objects they confirmed."""
@@ -192,14 +214,15 @@ class AutoChoice(SortHooks):
 
 
 def survey(agent: SpotAgent, vision: Vision, keep=None, scans: int = SURVEY_SCANS,
-           surround: bool = True) -> Survey | None:
+           surround: bool = True, phase=None) -> Survey | None:
     """Scan ``scans`` times and return what got registered.
 
     The arm is put out in front with the gripper open first, so the hand camera looks along
     with the body cameras — every body camera with ``surround``, else the front pair, whose
     registered objects are then only those ahead of the robot (`FRONT_HALF_ANGLE`), not ones
     an earlier all-round look left behind. ``keep`` filters further (grasp-here keeps only
-    what is within reach). None if no scan came back at all.
+    what is within reach). Several sortable candidates → `look_closer` at each with the hand
+    before ranking. None if no scan came back at all.
     """
     agent.arm_ready()
     started = time.time()
@@ -210,12 +233,60 @@ def survey(agent: SpotAgent, vision: Vision, keep=None, scans: int = SURVEY_SCAN
     scene = views.get("cameras") or views.get("hand")
     if scene is None:
         return None
+    look_closer(agent, vision, keep=keep, surround=surround, phase=phase)
     tracks = vision.tracker.candidates(since=started)  # type: ignore[union-attr]
     if not surround:
         tracks = [t for t in tracks if abs(bearing_and_distance(agent, t.position)[0]) <= FRONT_HALF_ANGLE]
     if keep is not None:
         tracks = [t for t in tracks if keep(t)]
     return Survey(scene, tracks, started, hand=views.get("hand"))
+
+
+def look_closer(agent: SpotAgent, vision: Vision, keep=None, surround: bool = True, phase=None) -> int:
+    """Turn the hand onto each sortable candidate seen lately and let it judge. Returns how many.
+
+    Only when there is a choice to make — `LOOK_MIN` or more objects a prompt claimed for a
+    sortable bin within `LOOK_WINDOW` s. For each (best `LOOK_MAX`, swept right to left so
+    the arm moves one way): gaze at its registered position, wait for the hand to be still,
+    take one classified hand scan with depth. The tracker files that scan as usual, then
+    `confirm` scores the look — recognised again, found but not recognised, or nothing there.
+    The arm goes back to the ready pose afterwards.
+    """
+    tracker = vision.tracker
+    phase = phase or (lambda text: None)
+    max_angle = LOOK_HALF_ANGLE if surround else min(LOOK_HALF_ANGLE, FRONT_HALF_ANGLE)
+    pool = []
+    for track in tracker.worth_a_look(time.time() - LOOK_WINDOW, LOOK_GROUPS):  # type: ignore[union-attr]
+        bearing, distance = bearing_and_distance(agent, track.position)
+        if abs(bearing) <= max_angle and distance <= LOOK_RANGE and (keep is None or keep(track)):
+            pool.append((bearing, track))
+    if len(pool) < LOOK_MIN:
+        return 0
+    pool = sorted(pool[:LOOK_MAX], key=lambda item: item[0])
+    logger.info(f"Looking closer at {len(pool)} candidate(s): " + ", ".join(f"#{t.id} {t.label}" for _, t in pool))
+    looked = 0
+    try:
+        for _, track in pool:
+            agent.check_halt()
+            phase(f"looking closer at #{track.id} {track.label}")
+            agent.gaze_at(*(float(v) for v in track.position))
+            agent.wait_hand_still()
+            try:
+                hand = vision.scan_views(agent, (HAND,), depth=True).get("hand")
+            except CoreIOUnavailable as exc:
+                logger.warning(f"Close look failed ({exc}) — choosing from what the survey saw")
+                break
+            if hand is None:
+                continue
+            looked += 1
+            verdict = tracker.confirm(track.id, hand)  # type: ignore[union-attr]
+            now = tracker.get(track.id)  # type: ignore[union-attr]
+            logger.info(f"Close look at #{track.id}: {verdict}"
+                        + (f" — now {now.summary()}, look score {now.look_score:+.2f}" if now else ""))
+    finally:
+        if not agent.halted:
+            agent.arm_ready()
+    return looked
 
 
 def _picked(vision: Vision, choice: Choice) -> None:
@@ -258,7 +329,7 @@ def run_sort_loop(agent: SpotAgent, vision: Vision, points: SortPoints, hooks: S
 
         hooks.phase("surveying")
         try:
-            found = survey(agent, vision, surround=hooks.surround())
+            found = survey(agent, vision, surround=hooks.surround(), phase=hooks.phase)
         except CoreIOUnavailable as exc:
             logger.error(f"Vision service unavailable ({exc}) — retrying in {rescan_sec:.0f} s")
             time.sleep(rescan_sec)
@@ -319,7 +390,7 @@ def run_grasp_here(agent: SpotAgent, vision: Vision, hooks: SortHooks, attempts:
         hooks.phase("surveying around Spot")
         try:
             found = survey(agent, vision, keep=lambda t: distance_to(agent, t) <= GRAB_REACH,
-                           surround=hooks.surround())
+                           surround=hooks.surround(), phase=hooks.phase)
         except CoreIOUnavailable as exc:
             logger.error(f"Vision service unavailable ({exc})")
             return False
@@ -356,6 +427,7 @@ __all__ = [
     "SortHooks",
     "SortPoints",
     "Survey",
+    "look_closer",
     "run_go_to",
     "run_grasp_here",
     "run_initialisation",
